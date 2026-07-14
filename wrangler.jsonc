@@ -1,0 +1,28 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"main": ".open-next/worker.js",
+	"name": "rhps-website",
+	"compatibility_date": "2024-09-23",
+	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"assets": {
+		"directory": ".open-next/assets",
+		"binding": "ASSETS",
+		// Static assets bypass the Worker (and middleware.ts's password gate)
+		// by default. Force everything through the Worker so images/JS/CSS
+		// stay behind the gate too during the founders' review period —
+		// revert to the default (remove this) once SITE_PASSWORD is dropped
+		// and the assets-CDN fast path is worth having back.
+		"run_worker_first": true
+	},
+	"services": [
+		{
+			// Self-reference service binding, the service name must match the worker name
+			// see https://opennext.js.org/cloudflare/caching
+			"binding": "WORKER_SELF_REFERENCE",
+			"service": "rhps-website"
+		}
+	],
+	"routes": [
+		{ "pattern": "rhps.health", "custom_domain": true }
+	]
+}

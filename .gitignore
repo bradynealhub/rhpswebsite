@@ -1,0 +1,29 @@
+# Next.js
+.next/
+out/
+.vercel/
+.wrangler/
+.open-next/
+
+# Dependencies
+node_modules/
+
+# Env files - never commit API keys (OPENAI_API_KEY, RESEND_API_KEY)
+.env
+.env.local
+.env*.local
+.dev.vars
+
+# Pre-matte source images kept locally so matting can be re-run without a
+# new OpenAI call — not needed in git, only the final matted PNGs are.
+public/images/heroes/**/*.raw.png
+
+# Misc
+.DS_Store
+*.pem
+npm-debug.log*
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# macOS custom-folder-icon metadata files
+Icon?

@@ -1,0 +1,29 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-warmStone text-charcoal font-body;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-headline;
+  }
+
+  em {
+    @apply font-emphasis not-italic;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
