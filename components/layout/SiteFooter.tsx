@@ -30,9 +30,17 @@ export function SiteFooter() {
             </div>
           ))}
         </div>
-        <p className="mt-12 font-body text-xs text-warmStone/50">
-          &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
-        </p>
+        <div className="mt-12 flex flex-wrap items-center justify-between gap-4">
+          <p className="font-body text-xs text-warmStone/50">
+            &copy; {new Date().getFullYear()} {siteName}. All rights reserved.
+          </p>
+          <Link
+            href="/portal/login"
+            className="font-body text-xs text-warmStone/50 hover:text-warmStone"
+          >
+            Portal Login
+          </Link>
+        </div>
       </div>
     </footer>
   );

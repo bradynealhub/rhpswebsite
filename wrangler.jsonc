@@ -1,9 +1,43 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"main": ".open-next/worker.js",
+	// Points at our own wrapper, not .open-next/worker.js directly, so the
+	// portal's WebSocket document rooms can be intercepted before Next.js
+	// ever sees the request -- Next.js App Router Route Handlers do not
+	// support WebSocket upgrades (see worker.ts's header comment for why).
+	// The wrapper re-exports the OpenNext-generated handler unchanged for
+	// every other path.
+	"main": "worker.ts",
 	"name": "rhps-website",
 	"compatibility_date": "2024-09-23",
 	"compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+	"durable_objects": {
+		"bindings": [
+			// One instance per richtext document (env.DOCUMENT_ROOM.getByName(documentId)),
+			// holding the live Yjs CRDT state for collaborative editing. See
+			// documentRoom.ts and plan step 5.
+			{ "name": "DOCUMENT_ROOM", "class_name": "DocumentRoom" }
+		]
+	},
+	"migrations": [
+		// v1's SpikeRoom (step-1 transport spike) is retired -- superseded by
+		// DocumentRoom below. Migration history is append-only; don't edit v1.
+		{ "tag": "v1", "new_sqlite_classes": ["SpikeRoom"] },
+		{ "tag": "v2", "deleted_classes": ["SpikeRoom"], "new_sqlite_classes": ["DocumentRoom"] }
+	],
+	"d1_databases": [
+		{
+			"binding": "PORTAL_DB",
+			"database_name": "rhps-portal",
+			"database_id": "ea8aae6d-051a-4e49-a66a-b5aed9a16332",
+			"migrations_dir": "migrations"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "PORTAL_FILES",
+			"bucket_name": "rhps-portal-files"
+		}
+	],
 	"assets": {
 		"directory": ".open-next/assets",
 		"binding": "ASSETS",

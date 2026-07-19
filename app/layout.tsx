@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Merriweather, Source_Sans_3, Source_Serif_4 } from "next/font/google";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import "./globals.css";
 
 const merriweather = Merriweather({
@@ -41,6 +39,12 @@ export const metadata: Metadata = {
   },
 };
 
+// SiteHeader/SiteFooter live in app/(marketing)/layout.tsx, not here, so
+// the portal (app/portal/**, outside that route group) never gets the
+// marketing chrome. Tried gating on pathname via headers() first, but any
+// dynamic API in the root layout forces every page under it into
+// server-rendered mode, killing static generation site-wide -- the route
+// group keeps the marketing pages statically eligible.
 export default function RootLayout({
   children,
 }: {
@@ -51,11 +55,7 @@ export default function RootLayout({
       lang="en"
       className={`${merriweather.variable} ${sourceSans.variable} ${sourceSerif.variable}`}
     >
-      <body>
-        <SiteHeader />
-        {children}
-        <SiteFooter />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
