@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "pages:build": "opennextjs-cloudflare build",
     "pages:preview": "opennextjs-cloudflare preview",
-    "pages:deploy": "opennextjs-cloudflare deploy",
+    "pages:deploy": "wrangler d1 migrations apply rhps-portal --remote && opennextjs-cloudflare deploy",
     "generate:images": "tsx scripts/generate-hero-images.ts"
   },
   "dependencies": {
