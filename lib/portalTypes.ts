@@ -57,13 +57,83 @@ export type Opportunity = {
   go_no_go_decided_by_user_id: string | null;
   go_no_go_notes: string | null;
   notes: string | null;
+  company_id: string | null;
+  contact_id: string | null;
+  source_lead_id: string | null;
   created_at: string;
   updated_at: string;
 };
 
-// Denormalized read shape (opportunities JOIN portal_users) for list/detail
-// views that need to show the owner's name without a second round trip.
-export type OpportunityWithOwner = Opportunity & { owner_name: string; owner_email: string };
+// Denormalized read shape (opportunities JOIN portal_users, companies,
+// contacts) for list/detail views that need owner/company/contact display
+// without extra round trips.
+export type OpportunityWithOwner = Opportunity & {
+  owner_name: string;
+  owner_email: string;
+  company_name: string | null;
+  contact_name: string | null;
+  contact_title: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+};
+
+// --- Companies & contacts (shared CRM records attached to leads and
+// opportunities) -------------------------------------------------------
+
+export type Company = {
+  id: string;
+  name: string;
+  website: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Contact = {
+  id: string;
+  company_id: string | null;
+  name: string;
+  title: string | null;
+  email: string | null;
+  phone: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// --- Leads (inbound, unqualified inquiries -- most immediately, the
+// public-site contact form. Deliberately a separate model from Opportunity:
+// no owner, no funder, no forecast until someone triages and, if it's
+// worth pursuing, converts it.) ----------------------------------------
+
+export type LeadStatus = "New" | "Contacted" | "Qualified" | "Disqualified" | "Converted";
+
+export type Lead = {
+  id: string;
+  contact_id: string;
+  status: LeadStatus;
+  source: string;
+  inquiry_role: string | null;
+  message: string;
+  owner_user_id: string | null;
+  notes: string | null;
+  disqualify_reason: string | null;
+  converted_opportunity_id: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// Denormalized read shape (leads JOIN contacts JOIN companies, LEFT JOIN
+// owner) for list/detail views.
+export type LeadWithDetails = Lead & {
+  contact_name: string;
+  contact_title: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  company_id: string | null;
+  company_name: string | null;
+  owner_name: string | null;
+};
 
 export type OpportunityActivityType = "Note" | "Call" | "Email" | "Meeting" | "Task";
 

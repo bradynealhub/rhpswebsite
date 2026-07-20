@@ -1,14 +1,17 @@
 import Link from "next/link";
 import { listOpportunities } from "@/lib/portalDb";
 
-const STAGE_COLORS: Record<string, string> = {
-  Identified: "text-charcoal/60",
-  Qualifying: "text-copperAccent",
-  Pursuing: "text-slateBlue",
-  Submitted: "text-slateBlue",
-  Awarded: "text-evergreen",
-  Declined: "text-red-700",
-  "No-Go": "text-charcoal/40",
+// Filled pills, matching leads' badge treatment -- but a different palette
+// mapping (7 pipeline stages, not 5 triage states) so the two never read as
+// the same kind of object at a glance despite the shared visual language.
+const STAGE_BADGE: Record<string, string> = {
+  Identified: "bg-charcoal/10 text-charcoal/60",
+  Qualifying: "bg-copperAccent/15 text-copperAccent",
+  Pursuing: "bg-slateBlue/15 text-slateBlue",
+  Submitted: "bg-slateBlue/15 text-slateBlue",
+  Awarded: "bg-evergreen text-warmStone",
+  Declined: "bg-red-700/10 text-red-700",
+  "No-Go": "bg-charcoal/5 text-charcoal/40",
 };
 
 function formatAmount(cents: number | null): string {
@@ -35,46 +38,51 @@ export default async function OpportunitiesPage() {
         </Link>
       </div>
 
-      <table className="mt-6 w-full font-body text-sm">
-        <thead>
-          <tr className="border-b border-charcoal/10 text-left text-charcoal/60">
-            <th className="py-2">Title</th>
-            <th className="py-2">Funder / Program</th>
-            <th className="py-2">Stage</th>
-            <th className="py-2">Owner</th>
-            <th className="py-2">Win %</th>
-            <th className="py-2">Submission due</th>
-            <th className="py-2">Requested</th>
-          </tr>
-        </thead>
-        <tbody>
+      {opportunities.length === 0 ? (
+        <p className="mt-10 font-body text-sm text-charcoal/50">No opportunities yet.</p>
+      ) : (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {opportunities.map((o) => (
-            <tr key={o.id} className="border-b border-charcoal/5">
-              <td className="py-2">
-                <Link href={`/portal/opportunities/${o.id}`} className="text-evergreen hover:underline">
-                  {o.title}
-                </Link>
-              </td>
-              <td className="py-2">
+            <Link
+              key={o.id}
+              href={`/portal/opportunities/${o.id}`}
+              className="flex flex-col rounded-lg border border-charcoal/10 bg-white p-4 shadow-sm transition-colors hover:border-evergreen"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-body font-semibold text-charcoal">{o.title}</p>
+                <span className={`shrink-0 rounded-full px-2.5 py-1 font-body text-xs font-semibold ${STAGE_BADGE[o.stage] ?? ""}`}>
+                  {o.stage}
+                </span>
+              </div>
+
+              <p className="mt-1 font-body text-sm text-charcoal/60">
                 {o.funder}
-                {o.program_name ? <span className="block text-xs text-charcoal/50">{o.program_name}</span> : null}
-              </td>
-              <td className={`py-2 font-semibold ${STAGE_COLORS[o.stage] ?? ""}`}>{o.stage}</td>
-              <td className="py-2">{o.owner_name}</td>
-              <td className="py-2">{o.probability !== null ? `${o.probability}%` : "—"}</td>
-              <td className="py-2">{o.submission_deadline ?? "—"}</td>
-              <td className="py-2">{formatAmount(o.amount_requested_cents)}</td>
-            </tr>
+                {o.program_name ? ` · ${o.program_name}` : ""}
+              </p>
+
+              {o.company_name || o.contact_name ? (
+                <p className="mt-1 font-body text-xs text-charcoal/50">
+                  {[o.company_name, o.contact_name].filter(Boolean).join(" · ")}
+                </p>
+              ) : null}
+
+              <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 font-body text-xs text-charcoal/60">
+                <div>
+                  <dt className="inline text-charcoal/40">Win %:</dt> <dd className="inline">{o.probability !== null ? `${o.probability}%` : "—"}</dd>
+                </div>
+                <div>
+                  <dt className="inline text-charcoal/40">Requested:</dt> <dd className="inline">{formatAmount(o.amount_requested_cents)}</dd>
+                </div>
+                <div className="col-span-2">
+                  <dt className="inline text-charcoal/40">Submission due:</dt> <dd className="inline">{o.submission_deadline ?? "—"}</dd>
+                </div>
+              </dl>
+
+              <p className="mt-auto pt-4 font-body text-xs text-charcoal/50">Owned by {o.owner_name}</p>
+            </Link>
           ))}
-          {opportunities.length === 0 ? (
-            <tr>
-              <td colSpan={7} className="py-6 text-center text-charcoal/50">
-                No opportunities yet.
-              </td>
-            </tr>
-          ) : null}
-        </tbody>
-      </table>
+        </div>
+      )}
     </div>
   );
 }

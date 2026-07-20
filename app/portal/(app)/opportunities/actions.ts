@@ -5,6 +5,8 @@ import { revalidatePath } from "next/cache";
 import {
   addOpportunityActivity,
   createOpportunity,
+  findOrCreateCompany,
+  findOrCreateContact,
   getOpportunityById,
   recordGoNoGoDecision,
   setOpportunityActivityCompleted,
@@ -51,7 +53,20 @@ function stringOrNull(raw: FormDataEntryValue | null): string | null {
   return String(raw ?? "").trim() || null;
 }
 
-function readOpportunityInput(formData: FormData, ownerUserId: string, fallbackStage: OpportunityStage): OpportunityInput {
+async function readOpportunityInput(
+  formData: FormData,
+  ownerUserId: string,
+  fallbackStage: OpportunityStage,
+): Promise<OpportunityInput> {
+  const companyId = await findOrCreateCompany(String(formData.get("companyName") ?? ""));
+  const contactId = await findOrCreateContact({
+    name: String(formData.get("contactName") ?? ""),
+    email: stringOrNull(formData.get("contactEmail")),
+    phone: stringOrNull(formData.get("contactPhone")),
+    title: null,
+    companyId,
+  });
+
   return {
     title: String(formData.get("title") ?? "").trim(),
     funder: String(formData.get("funder") ?? "").trim(),
@@ -66,6 +81,8 @@ function readOpportunityInput(formData: FormData, ownerUserId: string, fallbackS
     decisionDate: stringOrNull(formData.get("decisionDate")),
     awardStartDate: stringOrNull(formData.get("awardStartDate")),
     notes: String(formData.get("notes") ?? "").trim() || null,
+    companyId,
+    contactId,
   };
 }
 
@@ -73,7 +90,7 @@ export async function createOpportunityAction(formData: FormData): Promise<void>
   const user = await getCurrentUser();
   if (!user) redirect("/portal/login");
 
-  const input = readOpportunityInput(formData, user.id, "Identified");
+  const input = await readOpportunityInput(formData, user.id, "Identified");
   if (!input.title || !input.funder) throw new Error("Title and funder are required.");
 
   const id = crypto.randomUUID();
@@ -98,7 +115,7 @@ export async function updateOpportunityAction(formData: FormData): Promise<void>
       ? String(formData.get("ownerUserId"))
       : opportunity.owner_user_id;
 
-  const input = readOpportunityInput(formData, ownerUserId, opportunity.stage);
+  const input = await readOpportunityInput(formData, ownerUserId, opportunity.stage);
   if (!input.title || !input.funder) throw new Error("Title and funder are required.");
 
   await updateOpportunity(opportunityId, input);

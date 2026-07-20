@@ -1,9 +1,13 @@
 import Link from "next/link";
-import { countOpportunitiesByStage } from "@/lib/portalDb";
+import { countNewLeads, countOpportunitiesByStage } from "@/lib/portalDb";
 import { getCurrentUser } from "@/lib/portalSession";
 
 export default async function PortalDashboardPage() {
-  const [user, stageCounts] = await Promise.all([getCurrentUser(), countOpportunitiesByStage()]);
+  const [user, stageCounts, newLeadsCount] = await Promise.all([
+    getCurrentUser(),
+    countOpportunitiesByStage(),
+    countNewLeads(),
+  ]);
 
   return (
     <div>
@@ -12,6 +16,17 @@ export default async function PortalDashboardPage() {
         Signed in as {user?.email} &middot; {user?.tier}
         {user?.is_platform_admin ? " · Platform Admin" : ""}
       </p>
+
+      <Link
+        href="/portal/leads"
+        className="mt-8 flex max-w-sm items-center justify-between rounded-md border border-copperAccent/40 bg-copperAccent/5 p-4 hover:border-copperAccent"
+      >
+        <div>
+          <p className="font-headline text-lg font-bold text-charcoal">Leads awaiting triage</p>
+          <p className="font-body text-sm text-charcoal/60">Inbound inquiries, mostly from the contact form</p>
+        </div>
+        <p className="font-body text-3xl font-bold text-copperAccent">{newLeadsCount}</p>
+      </Link>
 
       <h2 className="mt-10 font-headline text-lg font-bold text-charcoal">Opportunities by stage</h2>
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
