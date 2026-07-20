@@ -37,9 +37,6 @@ export async function POST(request: Request) {
 
   if (!(file instanceof File)) return NextResponse.json({ error: "No file provided." }, { status: 400 });
   if (!existingDocumentId && !title) return NextResponse.json({ error: "Title is required." }, { status: 400 });
-  if (!existingDocumentId && visibility === "Private" && folderId) {
-    return NextResponse.json({ error: "Private documents can't be placed in a shared folder." }, { status: 400 });
-  }
   if (file.size > MAX_FILE_BYTES) {
     return NextResponse.json({ error: "File is too large (50MB limit)." }, { status: 413 });
   }

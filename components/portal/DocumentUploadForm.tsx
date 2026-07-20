@@ -13,11 +13,9 @@ function readCookie(name: string): string {
 export function DocumentUploadForm({
   folderId,
   documentId,
-  visibility = "Shared",
 }: {
   folderId?: string | null;
   documentId?: string;
-  visibility?: "Private" | "Shared";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -33,7 +31,6 @@ export function DocumentUploadForm({
     const formData = new FormData(form);
     if (folderId) formData.set("folderId", folderId);
     if (documentId) formData.set("documentId", documentId);
-    if (!documentId) formData.set("visibility", visibility);
 
     try {
       const res = await fetch("/portal/api/documents", {
@@ -62,7 +59,7 @@ export function DocumentUploadForm({
         onClick={() => setOpen(true)}
         className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90"
       >
-        {documentId ? "Upload new version" : visibility === "Private" ? "Upload private document" : "Upload document"}
+        {documentId ? "Upload new version" : "Upload document"}
       </button>
     );
   }
@@ -101,6 +98,21 @@ export function DocumentUploadForm({
         </label>
         <input id="file" name="file" type="file" required className="mt-1 w-full font-body text-sm" />
       </div>
+      {!documentId ? (
+        <fieldset>
+          <legend className="font-body text-sm font-semibold text-charcoal">Who can see this?</legend>
+          <div className="mt-1 flex gap-4">
+            <label className="flex items-center gap-1.5 font-body text-sm text-charcoal">
+              <input type="radio" name="visibility" value="Shared" defaultChecked />
+              Everyone in the portal
+            </label>
+            <label className="flex items-center gap-1.5 font-body text-sm text-charcoal">
+              <input type="radio" name="visibility" value="Private" />
+              Only me (share it later)
+            </label>
+          </div>
+        </fieldset>
+      ) : null}
       <div className="flex items-center gap-3">
         <button
           type="submit"
