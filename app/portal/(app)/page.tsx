@@ -1,13 +1,18 @@
 import Link from "next/link";
-import { countNewLeads, countOpportunitiesByStage } from "@/lib/portalDb";
+import { OpportunityCard } from "@/components/portal/OpportunityCard";
+import { countNewLeads, countOpportunitiesByStage, listOpportunities } from "@/lib/portalDb";
 import { getCurrentUser } from "@/lib/portalSession";
 
+const RECENT_OPPORTUNITIES_LIMIT = 6;
+
 export default async function PortalDashboardPage() {
-  const [user, stageCounts, newLeadsCount] = await Promise.all([
+  const [user, stageCounts, newLeadsCount, opportunities] = await Promise.all([
     getCurrentUser(),
     countOpportunitiesByStage(),
     countNewLeads(),
+    listOpportunities(),
   ]);
+  const recentOpportunities = opportunities.slice(0, RECENT_OPPORTUNITIES_LIMIT);
 
   return (
     <div>
@@ -37,6 +42,14 @@ export default async function PortalDashboardPage() {
           </div>
         ))}
       </div>
+      {recentOpportunities.length > 0 ? (
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {recentOpportunities.map((o) => (
+            <OpportunityCard key={o.id} opportunity={o} />
+          ))}
+        </div>
+      ) : null}
+
       <Link href="/portal/opportunities" className="mt-4 inline-block font-body text-sm text-evergreen hover:underline">
         View all opportunities &rarr;
       </Link>
