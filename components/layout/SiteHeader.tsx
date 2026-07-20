@@ -18,9 +18,9 @@ export function SiteHeader() {
           <Image
             src="/images/brand/rhps-logo.png"
             alt={siteName}
-            width={200}
-            height={80}
-            className="h-14 w-auto"
+            width={260}
+            height={104}
+            className="h-[72px] w-auto"
             priority
           />
         </Link>
@@ -30,7 +30,7 @@ export function SiteHeader() {
             <div key={group.label} className="group relative">
               <button
                 type="button"
-                className="font-body text-sm font-semibold text-charcoal"
+                className="font-body text-base font-semibold text-charcoal"
                 aria-haspopup="true"
               >
                 {group.label}
@@ -40,7 +40,7 @@ export function SiteHeader() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="block rounded px-3 py-2 font-body text-sm text-charcoal hover:bg-warmStone"
+                    className="block rounded px-3 py-2 font-body text-base text-charcoal hover:bg-warmStone"
                   >
                     {item.label}
                   </Link>
