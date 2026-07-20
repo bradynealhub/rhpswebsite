@@ -3,7 +3,13 @@
 import { useState, type FormEvent } from "react";
 import { createRichTextDocumentAction } from "@/app/portal/(app)/documents/actions";
 
-export function NewRichTextDocumentForm({ folderId }: { folderId: string | null }) {
+export function NewRichTextDocumentForm({
+  folderId,
+  visibility = "Shared",
+}: {
+  folderId: string | null;
+  visibility?: "Private" | "Shared";
+}) {
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -34,7 +40,7 @@ export function NewRichTextDocumentForm({ folderId }: { folderId: string | null 
         onClick={() => setOpen(true)}
         className="rounded-md border border-charcoal/20 px-4 py-2 font-body text-sm text-charcoal hover:border-evergreen"
       >
-        New document
+        {visibility === "Private" ? "New private document" : "New document"}
       </button>
     );
   }
@@ -42,6 +48,7 @@ export function NewRichTextDocumentForm({ folderId }: { folderId: string | null 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-md space-y-3 rounded-md border border-charcoal/10 p-4">
       <input type="hidden" name="folderId" value={folderId ?? ""} />
+      <input type="hidden" name="visibility" value={visibility} />
       <div>
         <label htmlFor="rt-title" className="block font-body text-sm font-semibold text-charcoal">
           Title

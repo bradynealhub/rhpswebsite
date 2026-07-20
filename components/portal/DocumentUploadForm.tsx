@@ -13,9 +13,11 @@ function readCookie(name: string): string {
 export function DocumentUploadForm({
   folderId,
   documentId,
+  visibility = "Shared",
 }: {
   folderId?: string | null;
   documentId?: string;
+  visibility?: "Private" | "Shared";
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -31,6 +33,7 @@ export function DocumentUploadForm({
     const formData = new FormData(form);
     if (folderId) formData.set("folderId", folderId);
     if (documentId) formData.set("documentId", documentId);
+    if (!documentId) formData.set("visibility", visibility);
 
     try {
       const res = await fetch("/portal/api/documents", {
@@ -59,7 +62,7 @@ export function DocumentUploadForm({
         onClick={() => setOpen(true)}
         className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90"
       >
-        {documentId ? "Upload new version" : "Upload document"}
+        {documentId ? "Upload new version" : visibility === "Private" ? "Upload private document" : "Upload document"}
       </button>
     );
   }

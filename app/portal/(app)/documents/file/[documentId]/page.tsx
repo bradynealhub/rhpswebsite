@@ -2,9 +2,16 @@ import { notFound } from "next/navigation";
 import { ApprovalControls } from "@/components/portal/ApprovalControls";
 import { CollaborativeEditor } from "@/components/portal/CollaborativeEditor";
 import { CommentThread } from "@/components/portal/CommentThread";
+import { DocumentShareControls } from "@/components/portal/DocumentShareControls";
 import { DocumentUploadForm } from "@/components/portal/DocumentUploadForm";
-import { getDocumentById, listApprovals, listComments, listDocumentVersions } from "@/lib/portalDb";
-import { canApproveDocuments } from "@/lib/portalPermissions";
+import {
+  getDocumentById,
+  listApprovals,
+  listComments,
+  listDocumentShares,
+  listDocumentVersions,
+} from "@/lib/portalDb";
+import { canApproveDocuments, canManageDocumentSharing, getDocumentAccessLevel } from "@/lib/portalPermissions";
 import { getCurrentUser } from "@/lib/portalSession";
 
 function formatBytes(bytes: number): string {
@@ -18,6 +25,10 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
   const [user, document] = await Promise.all([getCurrentUser(), getDocumentById(documentId)]);
   if (!user || !document) notFound();
 
+  const shares = await listDocumentShares(documentId);
+  const access = getDocumentAccessLevel(user, document, shares);
+  if (access === "none") notFound();
+
   const [versions, comments, approvals] = await Promise.all([
     listDocumentVersions(documentId),
     listComments(documentId),
@@ -26,12 +37,21 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
 
   return (
     <div>
-      <h1 className="font-headline text-2xl font-bold text-charcoal">{document.title}</h1>
-      {document.description ? <p className="mt-2 font-body text-charcoal/70">{document.description}</p> : null}
-      <p className="mt-1 font-body text-sm text-charcoal/50">
-        {document.doc_type === "richtext" ? "Started" : "Uploaded"} by {document.uploader_name} &middot;{" "}
-        {document.created_at}
-      </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="font-headline text-2xl font-bold text-charcoal">{document.title}</h1>
+          {document.description ? <p className="mt-2 font-body text-charcoal/70">{document.description}</p> : null}
+          <p className="mt-1 font-body text-sm text-charcoal/50">
+            {document.doc_type === "richtext" ? "Started" : "Uploaded"} by {document.uploader_name} &middot;{" "}
+            {document.created_at}
+          </p>
+        </div>
+        {document.visibility === "Private" ? (
+          <span className="shrink-0 rounded-full bg-charcoal/10 px-3 py-1 font-body text-xs font-semibold text-charcoal/70">
+            🔒 Private
+          </span>
+        ) : null}
+      </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-8">
@@ -44,7 +64,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                   documentTitle={document.title}
                   userId={user.id}
                   userName={user.name}
-                  initialReadOnly={document.status !== "Draft"}
+                  initialReadOnly={document.status !== "Draft" || access !== "edit"}
                 />
               </div>
               {versions.length > 0 ? (
@@ -58,7 +78,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
             <div>
               <div className="flex items-center justify-between">
                 <h2 className="font-headline text-lg font-bold text-charcoal">Versions</h2>
-                <DocumentUploadForm documentId={document.id} />
+                {access === "edit" ? <DocumentUploadForm documentId={document.id} /> : null}
               </div>
               <ul className="mt-3 divide-y divide-charcoal/5">
                 {versions.map((version) => (
@@ -86,13 +106,16 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
           <CommentThread documentId={document.id} comments={comments} />
         </div>
 
-        <div>
+        <div className="space-y-8">
           <ApprovalControls
             document={document}
             approvals={approvals}
             currentUser={user}
             canApprove={canApproveDocuments(user)}
           />
+          {document.visibility === "Private" && canManageDocumentSharing(user, document) ? (
+            <DocumentShareControls documentId={document.id} shares={shares} />
+          ) : null}
         </div>
       </div>
     </div>

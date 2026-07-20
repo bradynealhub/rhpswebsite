@@ -83,6 +83,12 @@ export type OpportunityActivityWithAuthor = OpportunityActivity & { author_name:
 export type DocType = "richtext" | "file";
 export type DocumentStatus = "Draft" | "In Review" | "Approved" | "Rejected";
 
+// 'Shared' is the org-wide library's existing behavior (visible to every
+// portal user) -- 'Private' documents are visible only to their owner,
+// platform admins, and whoever they've been explicitly shared with (see
+// document_shares / lib/portalPermissions.ts's getDocumentAccessLevel).
+export type DocumentVisibility = "Private" | "Shared";
+
 export type PortalDocument = {
   id: string;
   title: string;
@@ -92,6 +98,7 @@ export type PortalDocument = {
   uploader_user_id: string;
   current_version: number;
   folder_id: string | null;
+  visibility: DocumentVisibility;
   created_at: string;
   updated_at: string;
 };
@@ -144,3 +151,21 @@ export type DocumentApproval = {
 };
 
 export type DocumentApprovalWithApprover = DocumentApproval & { approver_name: string };
+
+export type SharePermission = "View" | "Edit";
+
+export type DocumentShare = {
+  id: string;
+  document_id: string;
+  user_id: string;
+  permission: SharePermission;
+  shared_by_user_id: string;
+  created_at: string;
+};
+
+export type DocumentShareWithUser = DocumentShare & { user_name: string; user_email: string };
+
+// Denormalized read shape for "My Documents": a private document owned by
+// or shared with the viewer, alongside how they can reach it. `access` is
+// "owner" for the uploader, otherwise the granted share permission.
+export type MyDocument = DocumentWithUploader & { access: "owner" | SharePermission };

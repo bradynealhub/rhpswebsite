@@ -1,7 +1,15 @@
 import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { addFileDocumentVersion, createFileDocument, getNextDocumentVersionNumber } from "@/lib/portalDb";
+import {
+  addFileDocumentVersion,
+  createFileDocument,
+  getDocumentById,
+  getNextDocumentVersionNumber,
+  listDocumentShares,
+} from "@/lib/portalDb";
+import { canEditDocumentContent } from "@/lib/portalPermissions";
 import { getCurrentUser, verifyCsrf } from "@/lib/portalSession";
+import type { DocumentVisibility } from "@/lib/portalTypes";
 
 // Proxy-through-Worker upload (env.PORTAL_FILES.put), not presigned URLs --
 // no separate R2 S3-API credential surface to provision/rotate, and it
@@ -23,12 +31,26 @@ export async function POST(request: Request) {
   const title = String(formData.get("title") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim() || null;
   const folderId = String(formData.get("folderId") ?? "").trim() || null;
+  const visibilityRaw = String(formData.get("visibility") ?? "").trim();
+  const visibility: DocumentVisibility = visibilityRaw === "Private" ? "Private" : "Shared";
   const existingDocumentId = String(formData.get("documentId") ?? "").trim() || null;
 
   if (!(file instanceof File)) return NextResponse.json({ error: "No file provided." }, { status: 400 });
   if (!existingDocumentId && !title) return NextResponse.json({ error: "Title is required." }, { status: 400 });
+  if (!existingDocumentId && visibility === "Private" && folderId) {
+    return NextResponse.json({ error: "Private documents can't be placed in a shared folder." }, { status: 400 });
+  }
   if (file.size > MAX_FILE_BYTES) {
     return NextResponse.json({ error: "File is too large (50MB limit)." }, { status: 413 });
+  }
+
+  if (existingDocumentId) {
+    const existing = await getDocumentById(existingDocumentId);
+    if (!existing) return NextResponse.json({ error: "Document not found." }, { status: 404 });
+    const shares = await listDocumentShares(existingDocumentId);
+    if (!canEditDocumentContent(user, existing, shares)) {
+      return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+    }
   }
 
   const { env } = await getCloudflareContext({ async: true });
@@ -62,6 +84,7 @@ export async function POST(request: Request) {
       description,
       uploaderUserId: user.id,
       folderId,
+      visibility,
       versionId,
       r2Key,
       originalFilename: filename,
