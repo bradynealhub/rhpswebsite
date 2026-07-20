@@ -43,25 +43,44 @@ function colorForUserId(userId: string): string {
 async function verifySessionForRoom(
   request: Request,
   env: Env,
-): Promise<{ userId: string; userName: string } | null> {
+): Promise<{ userId: string; userName: string; isPlatformAdmin: boolean } | null> {
   const token = parseCookie(request.headers.get("Cookie"), "portal_session");
   if (!token) return null;
 
   const row = await env.PORTAL_DB.prepare(
     `SELECT portal_users.id AS id, portal_users.name AS name, portal_users.status AS status,
+            portal_users.is_platform_admin AS is_platform_admin,
             portal_sessions.expires_at AS expires_at
      FROM portal_sessions
      JOIN portal_users ON portal_users.id = portal_sessions.user_id
      WHERE portal_sessions.id = ?`,
   )
     .bind(token)
-    .first<{ id: string; name: string; status: string; expires_at: string }>();
+    .first<{ id: string; name: string; status: string; is_platform_admin: number; expires_at: string }>();
 
   if (!row) return null;
   if (row.status !== "Active") return null;
   if (new Date(row.expires_at).getTime() <= Date.now()) return null;
 
-  return { userId: row.id, userName: row.name };
+  return { userId: row.id, userName: row.name, isPlatformAdmin: Boolean(row.is_platform_admin) };
+}
+
+// Mirrors lib/portalPermissions.ts's getDocumentAccessLevel -- duplicated
+// rather than imported because this file runs outside the Next.js request
+// context (no next/headers), and the shared function's signature is small
+// enough that keeping two copies in sync is simpler than restructuring the
+// permissions module to be import-safe from both places.
+function documentAccessLevel(
+  identity: { userId: string; isPlatformAdmin: boolean },
+  document: { uploader_user_id: string; visibility: string },
+  shares: { user_id: string; permission: string }[],
+): "none" | "view" | "edit" {
+  if (document.uploader_user_id === identity.userId) return "edit";
+  if (identity.isPlatformAdmin) return "edit";
+  if (document.visibility === "Shared") return "edit";
+  const share = shares.find((s) => s.user_id === identity.userId);
+  if (!share) return "none";
+  return share.permission === "Edit" ? "edit" : "view";
 }
 
 export default {
@@ -78,12 +97,27 @@ export default {
       const identity = await verifySessionForRoom(request, env);
       if (!identity) return new Response("Not signed in.", { status: 401 });
 
-      const document = await env.PORTAL_DB.prepare("SELECT doc_type FROM documents WHERE id = ?")
+      const document = await env.PORTAL_DB.prepare(
+        "SELECT doc_type, uploader_user_id, visibility FROM documents WHERE id = ?",
+      )
         .bind(documentId)
-        .first<{ doc_type: string }>();
+        .first<{ doc_type: string; uploader_user_id: string; visibility: string }>();
       if (!document || document.doc_type !== "richtext") {
         return new Response("Not found.", { status: 404 });
       }
+
+      // Private-document gate: a "none" access level never reaches the
+      // Durable Object at all, and "view" reaches it but is passed through
+      // as read-only (see documentRoom.ts's per-connection canEdit check) --
+      // this is the hard boundary; CollaborativeEditor's client-side
+      // readOnly toggle is only a UX nicety layered on top of it.
+      const { results: shareRows } = await env.PORTAL_DB.prepare(
+        "SELECT user_id, permission FROM document_shares WHERE document_id = ?",
+      )
+        .bind(documentId)
+        .all<{ user_id: string; permission: string }>();
+      const access = documentAccessLevel(identity, document, shareRows);
+      if (access === "none") return new Response("Not found.", { status: 404 });
 
       const forwardedRequest = new Request(request, {
         headers: new Headers(request.headers),
@@ -91,6 +125,7 @@ export default {
       forwardedRequest.headers.set("X-Portal-User-Id", identity.userId);
       forwardedRequest.headers.set("X-Portal-User-Name", identity.userName);
       forwardedRequest.headers.set("X-Portal-User-Color", colorForUserId(identity.userId));
+      forwardedRequest.headers.set("X-Portal-Can-Edit", access === "edit" ? "1" : "0");
 
       const stub = env.DOCUMENT_ROOM.getByName(documentId);
       return stub.fetch(forwardedRequest);

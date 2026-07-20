@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { getDocumentById, getDocumentVersion, listDocumentVersions } from "@/lib/portalDb";
+import { getDocumentById, getDocumentVersion, listDocumentShares, listDocumentVersions } from "@/lib/portalDb";
+import { canViewDocument } from "@/lib/portalPermissions";
 import { getCurrentUser } from "@/lib/portalSession";
 
 // Never a public R2 URL -- re-derives the user from the session, then
@@ -13,6 +14,10 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const { id } = await params;
   const document = await getDocumentById(id);
   if (!document || document.doc_type !== "file") {
+    return NextResponse.json({ error: "Not found." }, { status: 404 });
+  }
+  const shares = await listDocumentShares(id);
+  if (!canViewDocument(user, document, shares)) {
     return NextResponse.json({ error: "Not found." }, { status: 404 });
   }
 

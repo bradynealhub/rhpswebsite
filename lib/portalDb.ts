@@ -3,9 +3,12 @@ import type {
   DocumentApprovalWithApprover,
   DocumentCommentWithAuthor,
   DocumentFolder,
+  DocumentShareWithUser,
   DocumentStatus,
   DocumentVersion,
+  DocumentVisibility,
   DocumentWithUploader,
+  MyDocument,
   OpportunityActivityType,
   OpportunityActivityWithAuthor,
   OpportunityStage,
@@ -13,6 +16,7 @@ import type {
   PortalInvite,
   PortalTier,
   PortalUser,
+  SharePermission,
 } from "./portalTypes";
 
 export async function getPortalDb(): Promise<D1Database> {
@@ -346,14 +350,21 @@ const DOCUMENT_WITH_UPLOADER_SELECT = `
   JOIN portal_users ON portal_users.id = documents.uploader_user_id
 `;
 
+// Private documents always have folder_id NULL (see migrations/0005) --
+// without the visibility filter, a root-level listDocuments(null) call
+// would surface every user's private documents at the top of the shared
+// library. This is the shared-folder-browser query only; "My Documents"
+// uses listMyDocuments instead.
 export async function listDocuments(folderId: string | null): Promise<DocumentWithUploader[]> {
   const db = await getPortalDb();
   const { results } = await (folderId
     ? db
-        .prepare(`${DOCUMENT_WITH_UPLOADER_SELECT} WHERE documents.folder_id = ? ORDER BY documents.created_at DESC`)
+        .prepare(
+          `${DOCUMENT_WITH_UPLOADER_SELECT} WHERE documents.folder_id = ? AND documents.visibility = 'Shared' ORDER BY documents.created_at DESC`,
+        )
         .bind(folderId)
     : db.prepare(
-        `${DOCUMENT_WITH_UPLOADER_SELECT} WHERE documents.folder_id IS NULL ORDER BY documents.created_at DESC`,
+        `${DOCUMENT_WITH_UPLOADER_SELECT} WHERE documents.folder_id IS NULL AND documents.visibility = 'Shared' ORDER BY documents.created_at DESC`,
       )
   ).all<DocumentWithUploader>();
   return results;
@@ -378,14 +389,22 @@ export async function createRichTextDocument(input: {
   description: string | null;
   uploaderUserId: string;
   folderId: string | null;
+  visibility?: DocumentVisibility;
 }): Promise<void> {
   const db = await getPortalDb();
   await db
     .prepare(
-      `INSERT INTO documents (id, title, description, doc_type, status, uploader_user_id, current_version, folder_id)
-       VALUES (?, ?, ?, 'richtext', 'Draft', ?, 0, ?)`,
+      `INSERT INTO documents (id, title, description, doc_type, status, uploader_user_id, current_version, folder_id, visibility)
+       VALUES (?, ?, ?, 'richtext', 'Draft', ?, 0, ?, ?)`,
     )
-    .bind(input.id, input.title, input.description, input.uploaderUserId, input.folderId)
+    .bind(
+      input.id,
+      input.title,
+      input.description,
+      input.uploaderUserId,
+      input.folderId,
+      input.visibility ?? "Shared",
+    )
     .run();
 }
 
@@ -421,6 +440,7 @@ export async function createFileDocument(input: {
   description: string | null;
   uploaderUserId: string;
   folderId: string | null;
+  visibility?: DocumentVisibility;
   versionId: string;
   r2Key: string;
   originalFilename: string;
@@ -431,10 +451,17 @@ export async function createFileDocument(input: {
   await db.batch([
     db
       .prepare(
-        `INSERT INTO documents (id, title, description, doc_type, status, uploader_user_id, current_version, folder_id)
-         VALUES (?, ?, ?, 'file', 'Draft', ?, 1, ?)`,
+        `INSERT INTO documents (id, title, description, doc_type, status, uploader_user_id, current_version, folder_id, visibility)
+         VALUES (?, ?, ?, 'file', 'Draft', ?, 1, ?, ?)`,
       )
-      .bind(input.id, input.title, input.description, input.uploaderUserId, input.folderId),
+      .bind(
+        input.id,
+        input.title,
+        input.description,
+        input.uploaderUserId,
+        input.folderId,
+        input.visibility ?? "Shared",
+      ),
     db
       .prepare(
         `INSERT INTO document_versions (id, document_id, version, created_by_user_id, r2_key, original_filename, mime_type, size_bytes)
@@ -592,4 +619,79 @@ export async function addApproval(input: {
       .prepare("UPDATE documents SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?")
       .bind(input.decision, input.documentId),
   ]);
+}
+
+// --- Private documents & sharing ---------------------------------------
+
+export async function listDocumentShares(documentId: string): Promise<DocumentShareWithUser[]> {
+  const db = await getPortalDb();
+  const { results } = await db
+    .prepare(
+      `SELECT document_shares.*, portal_users.name AS user_name, portal_users.email AS user_email
+       FROM document_shares
+       JOIN portal_users ON portal_users.id = document_shares.user_id
+       WHERE document_shares.document_id = ?
+       ORDER BY document_shares.created_at ASC`,
+    )
+    .bind(documentId)
+    .all<DocumentShareWithUser>();
+  return results;
+}
+
+// Upsert -- re-sharing with someone already on the list just changes their
+// permission level rather than erroring on the UNIQUE(document_id, user_id)
+// constraint.
+export async function shareDocument(input: {
+  id: string;
+  documentId: string;
+  userId: string;
+  permission: SharePermission;
+  sharedByUserId: string;
+}): Promise<void> {
+  const db = await getPortalDb();
+  await db
+    .prepare(
+      `INSERT INTO document_shares (id, document_id, user_id, permission, shared_by_user_id)
+       VALUES (?, ?, ?, ?, ?)
+       ON CONFLICT (document_id, user_id) DO UPDATE SET permission = excluded.permission`,
+    )
+    .bind(input.id, input.documentId, input.userId, input.permission, input.sharedByUserId)
+    .run();
+}
+
+export async function revokeDocumentShare(documentId: string, userId: string): Promise<void> {
+  const db = await getPortalDb();
+  await db
+    .prepare("DELETE FROM document_shares WHERE document_id = ? AND user_id = ?")
+    .bind(documentId, userId)
+    .run();
+}
+
+// "My Documents": private documents the viewer owns, plus private
+// documents shared with them -- the two are unioned (not a single JOIN)
+// because a document only needs to appear once regardless of how many
+// shares reference it, and "owner" always wins over any share row that
+// might also exist for the same person.
+export async function listMyDocuments(userId: string): Promise<MyDocument[]> {
+  const db = await getPortalDb();
+  const { results } = await db
+    .prepare(
+      `SELECT documents.*, portal_users.name AS uploader_name, 'owner' AS access
+       FROM documents
+       JOIN portal_users ON portal_users.id = documents.uploader_user_id
+       WHERE documents.visibility = 'Private' AND documents.uploader_user_id = ?
+
+       UNION ALL
+
+       SELECT documents.*, portal_users.name AS uploader_name, document_shares.permission AS access
+       FROM document_shares
+       JOIN documents ON documents.id = document_shares.document_id
+       JOIN portal_users ON portal_users.id = documents.uploader_user_id
+       WHERE document_shares.user_id = ? AND documents.uploader_user_id != ?
+
+       ORDER BY created_at DESC`,
+    )
+    .bind(userId, userId, userId)
+    .all<MyDocument>();
+  return results;
 }

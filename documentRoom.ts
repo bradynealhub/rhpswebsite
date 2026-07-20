@@ -30,6 +30,7 @@ type ConnectionAttachment = {
   userId: string;
   userName: string;
   color: string;
+  canEdit: boolean;
 };
 
 export class DocumentRoom extends DurableObject<Env> {
@@ -190,6 +191,7 @@ export class DocumentRoom extends DurableObject<Env> {
     const userId = request.headers.get("X-Portal-User-Id") ?? "";
     const userName = request.headers.get("X-Portal-User-Name") ?? "Unknown";
     const color = request.headers.get("X-Portal-User-Color") ?? "#0F4D3A";
+    const canEdit = request.headers.get("X-Portal-Can-Edit") === "1";
     if (!userId) return new Response("Missing identity.", { status: 400 });
 
     await this.ready;
@@ -197,7 +199,7 @@ export class DocumentRoom extends DurableObject<Env> {
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);
     this.ctx.acceptWebSocket(server);
-    server.serializeAttachment({ userId, userName, color } satisfies ConnectionAttachment);
+    server.serializeAttachment({ userId, userName, color, canEdit } satisfies ConnectionAttachment);
 
     // Let the new connection see who's already here -- awareness isn't
     // part of the sync handshake, so it wouldn't otherwise learn this.
@@ -215,6 +217,15 @@ export class DocumentRoom extends DurableObject<Env> {
   async webSocketMessage(ws: WebSocket, message: string | ArrayBuffer): Promise<void> {
     if (typeof message === "string") return; // protocol is binary-only
     await this.ready;
+
+    // Two independent reasons a connection's edits get dropped: the room
+    // itself is locked (submitted for review -- applies to everyone), or
+    // this specific connection only has "view" access to a private,
+    // selectively-shared document (worker.ts's X-Portal-Can-Edit, set from
+    // getDocumentAccessLevel). Awareness (cursor/presence) is exempt from
+    // both -- a viewer can still be seen looking at the document.
+    const attachment = ws.deserializeAttachment() as ConnectionAttachment | null;
+    const canApplyEdits = !this.roomReadOnly && (attachment?.canEdit ?? false);
 
     const decoder = decoding.createDecoder(new Uint8Array(message));
     const messageType = decoding.readVarUint(decoder);
@@ -234,9 +245,9 @@ export class DocumentRoom extends DurableObject<Env> {
         // Defense in depth: refuse to apply a read-only connection's
         // update server-side, regardless of what the client sends -- not
         // just hidden client-side.
-        if (!this.roomReadOnly) syncProtocol.readSyncStep2(decoder, this.doc, ws);
+        if (canApplyEdits) syncProtocol.readSyncStep2(decoder, this.doc, ws);
       } else if (syncMessageType === syncProtocol.messageYjsUpdate) {
-        if (!this.roomReadOnly) syncProtocol.readUpdate(decoder, this.doc, ws);
+        if (canApplyEdits) syncProtocol.readUpdate(decoder, this.doc, ws);
       }
     } else if (messageType === MESSAGE_AWARENESS) {
       const update = decoding.readVarUint8Array(decoder);
