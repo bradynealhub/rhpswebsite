@@ -1,4 +1,4 @@
--- Migration number: 0005 	 2026-07-20T16:59:51.000Z
+-- Migration number: 0006 	 2026-07-20T16:59:51.000Z
 --
 -- Adds a CRM layer the portal didn't have: companies (organizations),
 -- contacts (people at those organizations), and leads (inbound inquiries --
