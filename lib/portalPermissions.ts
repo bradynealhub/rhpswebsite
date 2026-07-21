@@ -28,6 +28,15 @@ export function canEditOpportunity(user: PortalUser, opportunity: { owner_user_i
   return opportunity.owner_user_id === user.id;
 }
 
+// Leads start unowned (created straight from the public contact form) --
+// anyone can claim/triage an unowned lead; once claimed, the same rule as
+// opportunities applies (owner or Founding Operator).
+export function canEditLead(user: PortalUser, lead: { owner_user_id: string | null }): boolean {
+  if (user.tier === "Founding Operator") return true;
+  if (lead.owner_user_id === null) return true;
+  return lead.owner_user_id === user.id;
+}
+
 // --- Document sharing ---------------------------------------------------
 //
 // 'Shared' documents keep the library's original all-tiers-can-engage

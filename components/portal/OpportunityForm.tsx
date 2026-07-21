@@ -1,4 +1,4 @@
-import type { Opportunity, PortalUser } from "@/lib/portalTypes";
+import type { OpportunityWithOwner, PortalUser } from "@/lib/portalTypes";
 
 // Stages a person picks directly in this form. "Qualifying" -> "Pursuing"/
 // "No-Go" is deliberately NOT here -- that transition happens through the
@@ -21,7 +21,7 @@ export function OpportunityForm({
   owners,
 }: {
   action: (formData: FormData) => void | Promise<void>;
-  opportunity?: Opportunity;
+  opportunity?: OpportunityWithOwner;
   owners?: Pick<PortalUser, "id" | "name" | "email">[];
 }) {
   return (
@@ -185,6 +185,64 @@ export function OpportunityForm({
             defaultValue={opportunity?.award_start_date ?? ""}
             className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
           />
+        </div>
+      </div>
+
+      <div className="rounded-md border border-charcoal/10 p-4">
+        <h2 className="font-body text-sm font-semibold uppercase tracking-wide text-charcoal/50">
+          Organization &amp; contact
+        </h2>
+        <p className="mt-1 font-body text-xs text-charcoal/50">
+          The organization and person on the other side of this opportunity -- not necessarily the funder itself
+          (e.g. a program officer, or a hospital&rsquo;s point of contact).
+        </p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="companyName" className="block font-body text-sm font-semibold text-charcoal">
+              Company / organization
+            </label>
+            <input
+              id="companyName"
+              name="companyName"
+              defaultValue={opportunity?.company_name ?? ""}
+              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            />
+          </div>
+          <div>
+            <label htmlFor="contactName" className="block font-body text-sm font-semibold text-charcoal">
+              Contact name
+            </label>
+            <input
+              id="contactName"
+              name="contactName"
+              defaultValue={opportunity?.contact_name ?? ""}
+              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            />
+          </div>
+          <div>
+            <label htmlFor="contactEmail" className="block font-body text-sm font-semibold text-charcoal">
+              Contact email
+            </label>
+            <input
+              id="contactEmail"
+              name="contactEmail"
+              type="email"
+              defaultValue={opportunity?.contact_email ?? ""}
+              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            />
+          </div>
+          <div>
+            <label htmlFor="contactPhone" className="block font-body text-sm font-semibold text-charcoal">
+              Contact phone
+            </label>
+            <input
+              id="contactPhone"
+              name="contactPhone"
+              type="tel"
+              defaultValue={opportunity?.contact_phone ?? ""}
+              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            />
+          </div>
         </div>
       </div>
 
