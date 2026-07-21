@@ -1,5 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type {
+  Company,
+  Contact,
   DocumentApprovalWithApprover,
   DocumentCommentWithAuthor,
   DocumentFolder,
@@ -8,6 +10,9 @@ import type {
   DocumentVersion,
   DocumentVisibility,
   DocumentWithUploader,
+  Lead,
+  LeadStatus,
+  LeadWithDetails,
   OpportunityActivityType,
   OpportunityActivityWithAuthor,
   OpportunityStage,
@@ -116,9 +121,13 @@ export async function findValidInvite(inviteId: string): Promise<PortalInvite | 
 }
 
 const OPPORTUNITY_WITH_OWNER_SELECT = `
-  SELECT opportunities.*, portal_users.name AS owner_name, portal_users.email AS owner_email
+  SELECT opportunities.*, portal_users.name AS owner_name, portal_users.email AS owner_email,
+         companies.name AS company_name, contacts.name AS contact_name, contacts.title AS contact_title,
+         contacts.email AS contact_email, contacts.phone AS contact_phone
   FROM opportunities
   JOIN portal_users ON portal_users.id = opportunities.owner_user_id
+  LEFT JOIN companies ON companies.id = opportunities.company_id
+  LEFT JOIN contacts ON contacts.id = opportunities.contact_id
 `;
 
 export async function listOpportunities(): Promise<OpportunityWithOwner[]> {
@@ -152,17 +161,21 @@ export type OpportunityInput = {
   decisionDate: string | null;
   awardStartDate: string | null;
   notes: string | null;
+  companyId: string | null;
+  contactId: string | null;
 };
 
-export async function createOpportunity(input: OpportunityInput & { id: string }): Promise<void> {
+export async function createOpportunity(
+  input: OpportunityInput & { id: string; sourceLeadId?: string | null },
+): Promise<void> {
   const db = await getPortalDb();
   await db
     .prepare(
       `INSERT INTO opportunities (
          id, title, funder, program_name, stage, owner_user_id, probability,
          amount_requested_cents, amount_awarded_cents, loi_deadline, submission_deadline,
-         decision_date, award_start_date, notes
-       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         decision_date, award_start_date, notes, company_id, contact_id, source_lead_id
+       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.id,
@@ -179,6 +192,9 @@ export async function createOpportunity(input: OpportunityInput & { id: string }
       input.decisionDate,
       input.awardStartDate,
       input.notes,
+      input.companyId,
+      input.contactId,
+      input.sourceLeadId ?? null,
     )
     .run();
 }
@@ -190,7 +206,8 @@ export async function updateOpportunity(id: string, input: OpportunityInput): Pr
       `UPDATE opportunities
        SET title = ?, funder = ?, program_name = ?, stage = ?, owner_user_id = ?, probability = ?,
            amount_requested_cents = ?, amount_awarded_cents = ?, loi_deadline = ?, submission_deadline = ?,
-           decision_date = ?, award_start_date = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+           decision_date = ?, award_start_date = ?, notes = ?, company_id = ?, contact_id = ?,
+           updated_at = CURRENT_TIMESTAMP
        WHERE id = ?`,
     )
     .bind(
@@ -207,6 +224,8 @@ export async function updateOpportunity(id: string, input: OpportunityInput): Pr
       input.decisionDate,
       input.awardStartDate,
       input.notes,
+      input.companyId,
+      input.contactId,
       id,
     )
     .run();
@@ -673,3 +692,213 @@ export async function revokeDocumentShare(documentId: string, userId: string): P
     .run();
 }
 
+// --- Companies & contacts -----------------------------------------------
+//
+// Find-or-create, not plain insert: the same organization or person
+// reaches out (or gets attached to an opportunity) more than once, and
+// these should accumulate onto one record rather than fork into
+// duplicates. Matching is case-insensitive on name (company) / email
+// (contact), which is deliberately loose -- good enough for a small
+// founder-run pipeline, not a dedupe engine.
+
+export async function findOrCreateCompany(name: string): Promise<string | null> {
+  const trimmed = name.trim();
+  if (!trimmed) return null;
+
+  const db = await getPortalDb();
+  const existing = await db
+    .prepare("SELECT id FROM companies WHERE name = ? COLLATE NOCASE")
+    .bind(trimmed)
+    .first<{ id: string }>();
+  if (existing) return existing.id;
+
+  const id = crypto.randomUUID();
+  await db.prepare("INSERT INTO companies (id, name) VALUES (?, ?)").bind(id, trimmed).run();
+  return id;
+}
+
+export async function findOrCreateContact(input: {
+  name: string;
+  email: string | null;
+  phone: string | null;
+  title: string | null;
+  companyId: string | null;
+}): Promise<string | null> {
+  const name = input.name.trim();
+  const email = input.email?.trim() || null;
+  const phone = input.phone?.trim() || null;
+  const title = input.title?.trim() || null;
+  if (!name && !email) return null;
+
+  const db = await getPortalDb();
+
+  if (email) {
+    const existing = await db
+      .prepare("SELECT * FROM contacts WHERE email = ? COLLATE NOCASE")
+      .bind(email)
+      .first<Contact>();
+    if (existing) {
+      // Best-effort enrichment -- fill in blanks the earlier record didn't
+      // have, never overwrite something already on file.
+      await db
+        .prepare(
+          `UPDATE contacts
+           SET name = COALESCE(NULLIF(name, ''), ?), phone = COALESCE(phone, ?), title = COALESCE(title, ?),
+               company_id = COALESCE(company_id, ?), updated_at = CURRENT_TIMESTAMP
+           WHERE id = ?`,
+        )
+        .bind(name, phone, title, input.companyId, existing.id)
+        .run();
+      return existing.id;
+    }
+  }
+
+  const id = crypto.randomUUID();
+  await db
+    .prepare(
+      `INSERT INTO contacts (id, company_id, name, title, email, phone)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    )
+    .bind(id, input.companyId, name || email, title, email, phone)
+    .run();
+  return id;
+}
+
+export async function getCompanyById(id: string): Promise<Company | null> {
+  const db = await getPortalDb();
+  const row = await db.prepare("SELECT * FROM companies WHERE id = ?").bind(id).first<Company>();
+  return row ?? null;
+}
+
+export async function getContactById(id: string): Promise<Contact | null> {
+  const db = await getPortalDb();
+  const row = await db.prepare("SELECT * FROM contacts WHERE id = ?").bind(id).first<Contact>();
+  return row ?? null;
+}
+
+// --- Leads ---------------------------------------------------------------
+//
+// A lead is deliberately not an opportunity: no owner, no funder, no
+// forecast until someone triages it. See migrations/0005 for the full
+// rationale.
+
+const LEAD_WITH_DETAILS_SELECT = `
+  SELECT leads.*, contacts.name AS contact_name, contacts.title AS contact_title,
+         contacts.email AS contact_email, contacts.phone AS contact_phone,
+         contacts.company_id AS company_id, companies.name AS company_name,
+         portal_users.name AS owner_name
+  FROM leads
+  JOIN contacts ON contacts.id = leads.contact_id
+  LEFT JOIN companies ON companies.id = contacts.company_id
+  LEFT JOIN portal_users ON portal_users.id = leads.owner_user_id
+`;
+
+export async function listLeads(): Promise<LeadWithDetails[]> {
+  const db = await getPortalDb();
+  const { results } = await db
+    .prepare(`${LEAD_WITH_DETAILS_SELECT} ORDER BY leads.created_at DESC`)
+    .all<LeadWithDetails>();
+  return results;
+}
+
+export async function getLeadById(id: string): Promise<LeadWithDetails | null> {
+  const db = await getPortalDb();
+  const row = await db.prepare(`${LEAD_WITH_DETAILS_SELECT} WHERE leads.id = ?`).bind(id).first<LeadWithDetails>();
+  return row ?? null;
+}
+
+export async function countNewLeads(): Promise<number> {
+  const db = await getPortalDb();
+  const row = await db
+    .prepare("SELECT COUNT(*) AS count FROM leads WHERE status = 'New'")
+    .first<{ count: number }>();
+  return row?.count ?? 0;
+}
+
+// Public entry point from the contact form (app/api/contact/route.ts) -- no
+// portal session involved, so there's no owner yet.
+export async function createLeadFromInquiry(input: {
+  id: string;
+  name: string;
+  organization: string | null;
+  role: string | null;
+  email: string;
+  phone: string | null;
+  message: string;
+  source: string;
+}): Promise<void> {
+  const db = await getPortalDb();
+  const companyId = input.organization ? await findOrCreateCompany(input.organization) : null;
+  const contactId = await findOrCreateContact({
+    name: input.name,
+    email: input.email,
+    phone: input.phone,
+    title: null,
+    companyId,
+  });
+  if (!contactId) throw new Error("A lead requires at least a name or email.");
+
+  await db
+    .prepare(
+      `INSERT INTO leads (id, contact_id, source, inquiry_role, message)
+       VALUES (?, ?, ?, ?, ?)`,
+    )
+    .bind(input.id, contactId, input.source, input.role, input.message)
+    .run();
+}
+
+export async function claimLead(leadId: string, ownerUserId: string): Promise<void> {
+  const db = await getPortalDb();
+  await db
+    .prepare(
+      `UPDATE leads SET owner_user_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND owner_user_id IS NULL`,
+    )
+    .bind(ownerUserId, leadId)
+    .run();
+}
+
+export async function updateLeadStatus(input: {
+  id: string;
+  status: LeadStatus;
+  disqualifyReason: string | null;
+  notes: string | null;
+}): Promise<void> {
+  const db = await getPortalDb();
+  await db
+    .prepare(
+      `UPDATE leads
+       SET status = ?, disqualify_reason = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+       WHERE id = ?`,
+    )
+    .bind(input.status, input.disqualifyReason, input.notes, input.id)
+    .run();
+}
+
+// Converting a lead creates a real opportunity carrying the lead's
+// company/contact forward, then marks the lead Converted with a pointer to
+// what it became -- the one-way handoff from "unqualified inquiry" to
+// "something we're actively pursuing."
+export async function convertLeadToOpportunity(input: {
+  lead: Lead;
+  opportunityId: string;
+  title: string;
+  funder: string;
+  ownerUserId: string;
+  companyId: string | null;
+  contactId: string;
+}): Promise<void> {
+  const db = await getPortalDb();
+  await db.batch([
+    db
+      .prepare(
+        `INSERT INTO opportunities (id, title, funder, stage, owner_user_id, company_id, contact_id, source_lead_id)
+         VALUES (?, ?, ?, 'Identified', ?, ?, ?, ?)`,
+      )
+      .bind(input.opportunityId, input.title, input.funder, input.ownerUserId, input.companyId, input.contactId, input.lead.id),
+    db
+      .prepare(
+        `UPDATE leads SET status = 'Converted', converted_opportunity_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      )
+      .bind(input.opportunityId, input.lead.id),
+  ]);
+}

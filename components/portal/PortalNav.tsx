@@ -7,8 +7,10 @@ import type { PortalUser } from "@/lib/portalTypes";
 
 export function PortalNav({
   user,
+  newLeadsCount = 0,
 }: {
   user: Pick<PortalUser, "email" | "name" | "is_platform_admin" | "tier">;
+  newLeadsCount?: number;
 }) {
   const router = useRouter();
   // Nav visibility only -- the real check is server-side in
@@ -37,6 +39,14 @@ export function PortalNav({
             <span className="font-body text-xs font-semibold uppercase tracking-wide text-charcoal/50">
               Portal
             </span>
+          </Link>
+          <Link href="/portal/leads" className="flex items-center gap-1.5 font-body text-sm text-charcoal hover:text-evergreen">
+            Leads
+            {newLeadsCount > 0 ? (
+              <span className="rounded-full bg-copperAccent px-1.5 py-0.5 font-body text-xs font-semibold text-white">
+                {newLeadsCount}
+              </span>
+            ) : null}
           </Link>
           <Link href="/portal/opportunities" className="font-body text-sm text-charcoal hover:text-evergreen">
             Opportunities

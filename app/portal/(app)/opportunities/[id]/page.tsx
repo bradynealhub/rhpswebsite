@@ -46,6 +46,17 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
                 <strong>Owner:</strong> {opportunity.owner_name}
               </p>
               <p>
+                <strong>Organization:</strong> {opportunity.company_name ?? "—"}
+              </p>
+              <p>
+                <strong>Contact:</strong>{" "}
+                {opportunity.contact_name
+                  ? `${opportunity.contact_name}${opportunity.contact_email ? ` (${opportunity.contact_email})` : ""}${
+                      opportunity.contact_phone ? ` · ${opportunity.contact_phone}` : ""
+                    }`
+                  : "—"}
+              </p>
+              <p>
                 <strong>Win probability:</strong> {opportunity.probability !== null ? `${opportunity.probability}%` : "—"}
               </p>
               <p>
