@@ -362,10 +362,16 @@ export async function createFolder(input: {
 
 // --- Documents ---------------------------------------------------------
 
+// current_mime_type is the current version's mime_type (NULL for richtext
+// docs, which have no file bytes) -- joined in here rather than fetched
+// separately so the browser's file-type icon can be colored without an
+// extra round trip per row.
 const DOCUMENT_WITH_UPLOADER_SELECT = `
-  SELECT documents.*, portal_users.name AS uploader_name
+  SELECT documents.*, portal_users.name AS uploader_name, document_versions.mime_type AS current_mime_type
   FROM documents
   JOIN portal_users ON portal_users.id = documents.uploader_user_id
+  LEFT JOIN document_versions
+    ON document_versions.document_id = documents.id AND document_versions.version = documents.current_version
 `;
 
 // Private and Shared documents live in the same folder tree, browsed

@@ -10,17 +10,33 @@ function readCookie(name: string): string {
 
 // Route Handler (not a Server Action) because it needs to stream a
 // multipart file upload straight to R2 -- see app/portal/api/documents/route.ts.
+//
+// Controlled (open/onClose passed) when driven by NewItemMenu's dropdown;
+// uncontrolled otherwise -- the file detail page's "Upload new version"
+// usage (documentId set) never passes these, so it keeps its own
+// self-contained trigger button regardless of this component's other callers.
 export function DocumentUploadForm({
   folderId,
   documentId,
+  open: controlledOpen,
+  onClose,
 }: {
   folderId?: string | null;
   documentId?: string;
+  open?: boolean;
+  onClose?: () => void;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  function close() {
+    if (isControlled) onClose?.();
+    else setUncontrolledOpen(false);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -41,7 +57,7 @@ export function DocumentUploadForm({
       const body = (await res.json().catch(() => ({}))) as { error?: string; documentId?: string };
       if (!res.ok) throw new Error(body.error ?? "Upload failed. Please try again.");
 
-      setOpen(false);
+      close();
       setStatus("idle");
       form.reset();
       router.push(`/portal/documents/file/${body.documentId ?? documentId}`);
@@ -53,10 +69,11 @@ export function DocumentUploadForm({
   }
 
   if (!open) {
+    if (isControlled) return null;
     return (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => setUncontrolledOpen(true)}
         className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90"
       >
         {documentId ? "Upload new version" : "Upload document"}
@@ -121,11 +138,7 @@ export function DocumentUploadForm({
         >
           {status === "submitting" ? "Uploading..." : "Upload"}
         </button>
-        <button
-          type="button"
-          onClick={() => setOpen(false)}
-          className="font-body text-sm text-charcoal/60 hover:text-charcoal"
-        >
+        <button type="button" onClick={close} className="font-body text-sm text-charcoal/60 hover:text-charcoal">
           Cancel
         </button>
       </div>

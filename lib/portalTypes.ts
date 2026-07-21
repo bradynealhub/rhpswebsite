@@ -173,7 +173,7 @@ export type PortalDocument = {
   updated_at: string;
 };
 
-export type DocumentWithUploader = PortalDocument & { uploader_name: string };
+export type DocumentWithUploader = PortalDocument & { uploader_name: string; current_mime_type: string | null };
 
 export type DocumentFolder = {
   id: string;
