@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { DocumentUploadForm } from "@/components/portal/DocumentUploadForm";
 import { NewFolderForm } from "@/components/portal/NewFolderForm";
 import { NewRichTextDocumentForm } from "@/components/portal/NewRichTextDocumentForm";
 import { listDocuments, listFolders } from "@/lib/portalDb";
+import { getCurrentUser } from "@/lib/portalSession";
 import type { DocumentFolder } from "@/lib/portalTypes";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -19,7 +21,16 @@ export async function DocumentBrowser({
   currentFolderId: string | null;
   breadcrumbs: DocumentFolder[];
 }) {
-  const [folders, documents] = await Promise.all([listFolders(currentFolderId), listDocuments(currentFolderId)]);
+  const user = await getCurrentUser();
+  if (!user) redirect("/portal/login");
+
+  // Private and Shared documents are browsed in the same tree -- listDocuments
+  // filters per viewer, so a document that's private to someone else simply
+  // doesn't appear here at all, rather than living behind a separate tab.
+  const [folders, documents] = await Promise.all([
+    listFolders(currentFolderId),
+    listDocuments(currentFolderId, { id: user.id, isPlatformAdmin: Boolean(user.is_platform_admin) }),
+  ]);
 
   return (
     <div>
@@ -73,6 +84,7 @@ export async function DocumentBrowser({
                   href={`/portal/documents/file/${doc.id}`}
                   className="font-body text-charcoal hover:text-evergreen"
                 >
+                  {doc.visibility === "Private" ? "🔒 " : ""}
                   {doc.title}
                 </Link>
                 <span className={`font-body text-xs font-semibold ${STATUS_COLORS[doc.status] ?? ""}`}>

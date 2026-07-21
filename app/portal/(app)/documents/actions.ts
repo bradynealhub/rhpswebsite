@@ -49,10 +49,6 @@ export async function createRichTextDocumentAction(formData: FormData): Promise<
   const visibilityRaw = String(formData.get("visibility") ?? "").trim();
   const visibility: DocumentVisibility = visibilityRaw === "Private" ? "Private" : "Shared";
   if (!title) throw new Error("Title is required.");
-  // Private documents live only in "My Documents" (a flat, owner-scoped
-  // list) -- never filed into the shared folder tree, which is inherently
-  // an org-wide navigational structure. See migrations/0005's header comment.
-  if (visibility === "Private" && folderId) throw new Error("Private documents can't be placed in a shared folder.");
 
   const id = crypto.randomUUID();
   await createRichTextDocument({ id, title, description, uploaderUserId: user.id, folderId, visibility });

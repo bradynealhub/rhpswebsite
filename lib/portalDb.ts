@@ -13,7 +13,6 @@ import type {
   Lead,
   LeadStatus,
   LeadWithDetails,
-  MyDocument,
   OpportunityActivityType,
   OpportunityActivityWithAuthor,
   OpportunityStage,
@@ -369,23 +368,30 @@ const DOCUMENT_WITH_UPLOADER_SELECT = `
   JOIN portal_users ON portal_users.id = documents.uploader_user_id
 `;
 
-// Private documents always have folder_id NULL (see migrations/0005) --
-// without the visibility filter, a root-level listDocuments(null) call
-// would surface every user's private documents at the top of the shared
-// library. This is the shared-folder-browser query only; "My Documents"
-// uses listMyDocuments instead.
-export async function listDocuments(folderId: string | null): Promise<DocumentWithUploader[]> {
+// Private and Shared documents live in the same folder tree, browsed
+// through the same page -- a folder's contents are simply filtered per
+// viewer: 'Shared' documents show for everyone, 'Private' ones only for
+// their owner, platform admins, and anyone in document_shares. This
+// mirrors getDocumentAccessLevel's rules (lib/portalPermissions.ts) but
+// as a WHERE clause rather than a per-row check, since it has to run
+// before the rows are even fetched.
+export async function listDocuments(
+  folderId: string | null,
+  viewer: { id: string; isPlatformAdmin: boolean },
+): Promise<DocumentWithUploader[]> {
   const db = await getPortalDb();
-  const { results } = await (folderId
-    ? db
-        .prepare(
-          `${DOCUMENT_WITH_UPLOADER_SELECT} WHERE documents.folder_id = ? AND documents.visibility = 'Shared' ORDER BY documents.created_at DESC`,
-        )
-        .bind(folderId)
-    : db.prepare(
-        `${DOCUMENT_WITH_UPLOADER_SELECT} WHERE documents.folder_id IS NULL AND documents.visibility = 'Shared' ORDER BY documents.created_at DESC`,
-      )
-  ).all<DocumentWithUploader>();
+  const visibilityClause = viewer.isPlatformAdmin
+    ? "1=1"
+    : `(documents.visibility = 'Shared'
+        OR documents.uploader_user_id = ?
+        OR documents.id IN (SELECT document_id FROM document_shares WHERE user_id = ?))`;
+  const folderClause = folderId ? "documents.folder_id = ?" : "documents.folder_id IS NULL";
+
+  const stmt = db.prepare(
+    `${DOCUMENT_WITH_UPLOADER_SELECT} WHERE ${folderClause} AND ${visibilityClause} ORDER BY documents.created_at DESC`,
+  );
+  const params = viewer.isPlatformAdmin ? [] : [viewer.id, viewer.id];
+  const { results } = await stmt.bind(...(folderId ? [folderId, ...params] : params)).all<DocumentWithUploader>();
   return results;
 }
 
@@ -684,35 +690,6 @@ export async function revokeDocumentShare(documentId: string, userId: string): P
     .prepare("DELETE FROM document_shares WHERE document_id = ? AND user_id = ?")
     .bind(documentId, userId)
     .run();
-}
-
-// "My Documents": private documents the viewer owns, plus private
-// documents shared with them -- the two are unioned (not a single JOIN)
-// because a document only needs to appear once regardless of how many
-// shares reference it, and "owner" always wins over any share row that
-// might also exist for the same person.
-export async function listMyDocuments(userId: string): Promise<MyDocument[]> {
-  const db = await getPortalDb();
-  const { results } = await db
-    .prepare(
-      `SELECT documents.*, portal_users.name AS uploader_name, 'owner' AS access
-       FROM documents
-       JOIN portal_users ON portal_users.id = documents.uploader_user_id
-       WHERE documents.visibility = 'Private' AND documents.uploader_user_id = ?
-
-       UNION ALL
-
-       SELECT documents.*, portal_users.name AS uploader_name, document_shares.permission AS access
-       FROM document_shares
-       JOIN documents ON documents.id = document_shares.document_id
-       JOIN portal_users ON portal_users.id = documents.uploader_user_id
-       WHERE document_shares.user_id = ? AND documents.uploader_user_id != ?
-
-       ORDER BY created_at DESC`,
-    )
-    .bind(userId, userId, userId)
-    .all<MyDocument>();
-  return results;
 }
 
 // --- Companies & contacts -----------------------------------------------

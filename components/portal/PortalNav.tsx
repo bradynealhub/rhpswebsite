@@ -54,9 +54,6 @@ export function PortalNav({
           <Link href="/portal/documents" className="font-body text-sm text-charcoal hover:text-evergreen">
             Documents
           </Link>
-          <Link href="/portal/documents/mine" className="font-body text-sm text-charcoal hover:text-evergreen">
-            My Documents
-          </Link>
           {user.is_platform_admin ? (
             <Link href="/portal/admin/users" className="font-body text-sm text-charcoal hover:text-evergreen">
               Admin

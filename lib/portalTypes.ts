@@ -234,8 +234,3 @@ export type DocumentShare = {
 };
 
 export type DocumentShareWithUser = DocumentShare & { user_name: string; user_email: string };
-
-// Denormalized read shape for "My Documents": a private document owned by
-// or shared with the viewer, alongside how they can reach it. `access` is
-// "owner" for the uploader, otherwise the granted share permission.
-export type MyDocument = DocumentWithUploader & { access: "owner" | SharePermission };
