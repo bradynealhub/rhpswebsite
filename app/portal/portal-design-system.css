@@ -73,6 +73,20 @@
   line-height: 1.55;
 }
 
+/* — app shell: slim top bar + persistent left sidebar + main pane — */
+.portal-ds.portal-shell { min-height: 100vh; display: flex; flex-direction: column; }
+.portal-ds .portal-shell-body { display: flex; flex: 1; min-height: 0; }
+.portal-ds .portal-sidebar {
+  width: 238px; flex: none; border-right: 1px solid var(--color-divider);
+  display: flex; flex-direction: column; gap: var(--space-6);
+  padding: var(--space-4) var(--space-3); overflow-y: auto;
+}
+.portal-ds .portal-shell-main { flex: 1; min-width: 0; padding: var(--space-8) var(--space-6); }
+@media (max-width: 860px) {
+  .portal-ds .portal-shell-body { flex-direction: column; }
+  .portal-ds .portal-sidebar { width: auto; border-right: 0; border-bottom: 1px solid var(--color-divider); }
+}
+
 .portal-ds h1, .portal-ds h2, .portal-ds h3, .portal-ds h4, .portal-ds h5, .portal-ds h6 {
   font-family: var(--font-heading); font-weight: var(--font-heading-weight);
   line-height: 1.12; letter-spacing: -0.015em; margin: 0 0 var(--space-2);
