@@ -18,11 +18,13 @@ function readCookie(name: string): string {
 export function DocumentUploadForm({
   folderId,
   documentId,
+  opportunityId,
   open: controlledOpen,
   onClose,
 }: {
   folderId?: string | null;
   documentId?: string;
+  opportunityId?: string;
   open?: boolean;
   onClose?: () => void;
 }) {
@@ -47,6 +49,7 @@ export function DocumentUploadForm({
     const formData = new FormData(form);
     if (folderId) formData.set("folderId", folderId);
     if (documentId) formData.set("documentId", documentId);
+    if (opportunityId) formData.set("opportunityId", opportunityId);
 
     try {
       const res = await fetch("/portal/api/documents", {
@@ -60,8 +63,14 @@ export function DocumentUploadForm({
       close();
       setStatus("idle");
       form.reset();
-      router.push(`/portal/documents/file/${body.documentId ?? documentId}`);
-      router.refresh();
+      // From an opportunity page, stay put and just refresh the attached-
+      // documents list -- navigating to the new document would be a jarring
+      // detour from what the user was actually doing.
+      if (opportunityId) router.refresh();
+      else {
+        router.push(`/portal/documents/file/${body.documentId ?? documentId}`);
+        router.refresh();
+      }
     } catch (err) {
       setStatus("error");
       setErrorMessage(err instanceof Error ? err.message : "Something went wrong.");
@@ -82,7 +91,7 @@ export function DocumentUploadForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md space-y-3 rounded-md border border-charcoal/10 p-4">
+    <form onSubmit={handleSubmit} className="w-80 space-y-3 rounded-lg border border-charcoal/10 bg-white p-4 shadow-lg">
       {!documentId ? (
         <div>
           <label htmlFor="title" className="block font-body text-sm font-semibold text-charcoal">
@@ -118,7 +127,7 @@ export function DocumentUploadForm({
       {!documentId ? (
         <fieldset>
           <legend className="font-body text-sm font-semibold text-charcoal">Who can see this?</legend>
-          <div className="mt-1 flex gap-4">
+          <div className="mt-1 flex flex-col gap-1.5">
             <label className="flex items-center gap-1.5 font-body text-sm text-charcoal">
               <input type="radio" name="visibility" value="Shared" defaultChecked />
               Everyone in the portal
