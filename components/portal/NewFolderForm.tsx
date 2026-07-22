@@ -3,10 +3,29 @@
 import { useState, type FormEvent } from "react";
 import { createFolderAction } from "@/app/portal/(app)/documents/actions";
 
-export function NewFolderForm({ parentFolderId }: { parentFolderId: string | null }) {
-  const [open, setOpen] = useState(false);
+// Controlled (open/onClose passed) when driven by NewItemMenu's dropdown;
+// uncontrolled (renders its own trigger button) otherwise -- standard
+// controllable-component pattern so existing standalone usage keeps working
+// unchanged.
+export function NewFolderForm({
+  parentFolderId,
+  open: controlledOpen,
+  onClose,
+}: {
+  parentFolderId: string | null;
+  open?: boolean;
+  onClose?: () => void;
+}) {
+  const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : uncontrolledOpen;
   const [status, setStatus] = useState<"idle" | "submitting" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  function close() {
+    if (isControlled) onClose?.();
+    else setUncontrolledOpen(false);
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -14,7 +33,7 @@ export function NewFolderForm({ parentFolderId }: { parentFolderId: string | nul
     setErrorMessage("");
     try {
       await createFolderAction(new FormData(event.currentTarget));
-      setOpen(false);
+      close();
       setStatus("idle");
     } catch (err) {
       setStatus("error");
@@ -23,10 +42,11 @@ export function NewFolderForm({ parentFolderId }: { parentFolderId: string | nul
   }
 
   if (!open) {
+    if (isControlled) return null;
     return (
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => setUncontrolledOpen(true)}
         className="rounded-md border border-charcoal/20 px-4 py-2 font-body text-sm text-charcoal hover:border-evergreen"
       >
         New folder
@@ -51,11 +71,7 @@ export function NewFolderForm({ parentFolderId }: { parentFolderId: string | nul
       >
         Create
       </button>
-      <button
-        type="button"
-        onClick={() => setOpen(false)}
-        className="font-body text-sm text-charcoal/60 hover:text-charcoal"
-      >
+      <button type="button" onClick={close} className="font-body text-sm text-charcoal/60 hover:text-charcoal">
         Cancel
       </button>
       {status === "error" ? (
