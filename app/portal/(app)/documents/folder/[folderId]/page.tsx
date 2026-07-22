@@ -11,7 +11,7 @@ export default async function DocumentsFolderPage({ params }: { params: Promise<
 
   return (
     <div>
-      <h1 className="font-headline text-2xl font-bold text-charcoal">{folder.name}</h1>
+      <h1>{folder.name}</h1>
       <div className="mt-6">
         <DocumentBrowser currentFolderId={folderId} breadcrumbs={breadcrumbs} />
       </div>

@@ -44,41 +44,30 @@ export function NewFolderForm({
   if (!open) {
     if (isControlled) return null;
     return (
-      <button
-        type="button"
-        onClick={() => setUncontrolledOpen(true)}
-        className="rounded-md border border-charcoal/20 px-4 py-2 font-body text-sm text-charcoal hover:border-evergreen"
-      >
+      <button type="button" onClick={() => setUncontrolledOpen(true)} className="btn btn-secondary">
         New folder
       </button>
     );
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex w-80 items-center gap-2 rounded-lg border border-charcoal/10 bg-white p-4 shadow-lg"
-    >
+    <form onSubmit={handleSubmit} className="dialog blueprint elev-md" style={{ width: "320px" }}>
+      <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
       <input type="hidden" name="parentFolderId" value={parentFolderId ?? ""} />
-      <input
-        name="name"
-        required
-        autoFocus
-        placeholder="Folder name"
-        className="min-w-0 flex-1 rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
-      />
-      <button
-        type="submit"
-        disabled={status === "submitting"}
-        className="rounded-md bg-evergreen px-3 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90 disabled:opacity-60"
-      >
-        Create
-      </button>
-      <button type="button" onClick={close} className="font-body text-sm text-charcoal/60 hover:text-charcoal">
-        Cancel
-      </button>
+      <div className="field">
+        <label htmlFor="folder-name">Folder name</label>
+        <input id="folder-name" name="name" required autoFocus placeholder="e.g. Q4 Grant Cycle" className="input" />
+      </div>
+      <div className="dialog-actions">
+        <button type="button" onClick={close} className="btn btn-secondary">
+          Cancel
+        </button>
+        <button type="submit" disabled={status === "submitting"} className="btn btn-primary">
+          Create folder
+        </button>
+      </div>
       {status === "error" ? (
-        <p className="font-body text-sm text-red-700" role="alert">
+        <p style={{ fontSize: "13px", color: "#a13328" }} role="alert">
           {errorMessage}
         </p>
       ) : null}

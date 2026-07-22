@@ -33,9 +33,10 @@ export function DocumentShareControls({
   }
 
   return (
-    <div className="rounded-md border border-charcoal/10 p-4">
-      <h2 className="font-headline text-lg font-bold text-charcoal">Share</h2>
-      <p className="mt-1 font-body text-xs text-charcoal/50">
+    <div className="card blueprint">
+      <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+      <h2 style={{ fontSize: "17px", margin: 0 }}>Share</h2>
+      <p className="text-muted" style={{ fontSize: "12px", margin: "2px 0 0" }}>
         Private -- only you and whoever you share it with can see this document.
       </p>
 
@@ -44,17 +45,15 @@ export function DocumentShareControls({
           {shares.map((share) => (
             <li key={share.id} className="flex items-center justify-between gap-2">
               <div className="min-w-0">
-                <p className="truncate font-body text-sm text-charcoal">{share.user_name}</p>
-                <p className="truncate font-body text-xs text-charcoal/50">{share.user_email}</p>
+                <p className="truncate" style={{ fontSize: "13px" }}>{share.user_name}</p>
+                <p className="text-muted truncate" style={{ fontSize: "11px" }}>{share.user_email}</p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <span className="font-body text-xs font-semibold uppercase tracking-wide text-charcoal/50">
-                  {share.permission}
-                </span>
+                <span className="tag tag-neutral">{share.permission}</span>
                 <form action={revokeShareAction}>
                   <input type="hidden" name="documentId" value={documentId} />
                   <input type="hidden" name="userId" value={share.user_id} />
-                  <button type="submit" className="font-body text-xs text-charcoal/50 hover:text-red-700">
+                  <button type="submit" className="btn btn-ghost" style={{ fontSize: "12px" }}>
                     Remove
                   </button>
                 </form>
@@ -63,41 +62,26 @@ export function DocumentShareControls({
           ))}
         </ul>
       ) : (
-        <p className="mt-3 font-body text-sm text-charcoal/50">Not shared with anyone yet.</p>
+        <p className="text-muted mt-3" style={{ fontSize: "13px" }}>Not shared with anyone yet.</p>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-4 space-y-2 border-t border-charcoal/10 pt-4">
+      <form onSubmit={handleSubmit} className="mt-4 space-y-2" style={{ borderTop: "1px solid var(--color-divider)", paddingTop: "16px" }}>
         <input type="hidden" name="documentId" value={documentId} />
-        <label htmlFor="share-email" className="block font-body text-sm font-semibold text-charcoal">
-          Share with
-        </label>
-        <input
-          id="share-email"
-          name="email"
-          type="email"
-          required
-          placeholder="name@example.com"
-          className="w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
-        />
+        <div className="field">
+          <label htmlFor="share-email">Share with</label>
+          <input id="share-email" name="email" type="email" required placeholder="name@example.com" className="input" />
+        </div>
         <div className="flex items-center gap-2">
-          <select
-            name="permission"
-            defaultValue="View"
-            className="rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
-          >
+          <select name="permission" defaultValue="View" className="input" style={{ width: "auto" }}>
             <option value="View">Can view</option>
             <option value="Edit">Can edit</option>
           </select>
-          <button
-            type="submit"
-            disabled={status === "submitting"}
-            className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90 disabled:opacity-60"
-          >
+          <button type="submit" disabled={status === "submitting"} className="btn btn-primary">
             {status === "submitting" ? "Sharing..." : "Share"}
           </button>
         </div>
         {status === "error" ? (
-          <p className="font-body text-sm text-red-700" role="alert">
+          <p style={{ fontSize: "13px", color: "#a13328" }} role="alert">
             {errorMessage}
           </p>
         ) : null}

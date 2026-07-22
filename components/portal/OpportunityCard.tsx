@@ -8,14 +8,15 @@ import type { OpportunityWithOwner } from "@/lib/portalTypes";
 // opportunities" teaser so both render the same card, not two hand-copied
 // versions that drift apart.
 const STAGE_BADGE: Record<string, string> = {
-  Identified: "bg-charcoal/10 text-charcoal/60",
-  Qualifying: "bg-copperAccent/15 text-copperAccent",
-  Pursuing: "bg-slateBlue/15 text-slateBlue",
-  Submitted: "bg-slateBlue/15 text-slateBlue",
-  Awarded: "bg-evergreen text-warmStone",
-  Declined: "bg-red-700/10 text-red-700",
-  "No-Go": "bg-charcoal/5 text-charcoal/40",
+  Identified: "tag tag-neutral",
+  Qualifying: "tag tag-accent-2",
+  Pursuing: "tag tag-accent",
+  Submitted: "tag tag-accent",
+  Awarded: "tag tag-accent",
+  Declined: "tag tag-danger",
+  "No-Go": "tag tag-neutral",
 };
+const AWARDED_STYLE = { background: "var(--color-accent)", color: "var(--color-bg)" };
 
 function formatAmount(cents: number | null): string {
   if (cents === null) return "—";
@@ -28,41 +29,42 @@ function formatAmount(cents: number | null): string {
 
 export function OpportunityCard({ opportunity: o }: { opportunity: OpportunityWithOwner }) {
   return (
-    <Link
-      href={`/portal/opportunities/${o.id}`}
-      className="flex flex-col rounded-lg border border-charcoal/10 bg-white p-4 shadow-sm transition-colors hover:border-evergreen"
-    >
+    <Link href={`/portal/opportunities/${o.id}`} className="card blueprint elev-sm tile-hover flex flex-col">
+      <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
       <div className="flex items-start justify-between gap-2">
-        <p className="font-body font-semibold text-charcoal">{o.title}</p>
-        <span className={`shrink-0 rounded-full px-2.5 py-1 font-body text-xs font-semibold ${STAGE_BADGE[o.stage] ?? ""}`}>
+        <p className="card-title">{o.title}</p>
+        <span
+          className={`shrink-0 ${STAGE_BADGE[o.stage] ?? "tag tag-neutral"}`}
+          style={o.stage === "Awarded" ? AWARDED_STYLE : undefined}
+        >
           {o.stage}
         </span>
       </div>
 
-      <p className="mt-1 font-body text-sm text-charcoal/60">
+      <p className="text-muted mt-1" style={{ fontSize: "13px" }}>
         {o.funder}
         {o.program_name ? ` · ${o.program_name}` : ""}
       </p>
 
       {o.company_name || o.contact_name ? (
-        <p className="mt-1 font-body text-xs text-charcoal/50">
+        <p className="text-muted mt-1" style={{ fontSize: "11px" }}>
           {[o.company_name, o.contact_name].filter(Boolean).join(" · ")}
         </p>
       ) : null}
 
-      <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 font-body text-xs text-charcoal/60">
+      <dl className="card-meta mt-3 grid grid-cols-2 gap-x-3 gap-y-1">
         <div>
-          <dt className="inline text-charcoal/40">Win %:</dt> <dd className="inline">{o.probability !== null ? `${o.probability}%` : "—"}</dd>
+          <dt className="inline text-muted">Win %:</dt> <dd className="inline">{o.probability !== null ? `${o.probability}%` : "—"}</dd>
         </div>
         <div>
-          <dt className="inline text-charcoal/40">Requested:</dt> <dd className="inline">{formatAmount(o.amount_requested_cents)}</dd>
+          <dt className="inline text-muted">Requested:</dt> <dd className="inline">{formatAmount(o.amount_requested_cents)}</dd>
         </div>
         <div className="col-span-2">
-          <dt className="inline text-charcoal/40">Submission due:</dt> <dd className="inline">{o.submission_deadline ?? "—"}</dd>
+          <dt className="inline text-muted">Submission due:</dt> <dd className="inline">{o.submission_deadline ?? "—"}</dd>
         </div>
       </dl>
 
-      <p className="mt-auto pt-4 font-body text-xs text-charcoal/50">Owned by {o.owner_name}</p>
+      <p className="card-meta mt-auto pt-4">Owned by {o.owner_name}</p>
     </Link>
   );
 }

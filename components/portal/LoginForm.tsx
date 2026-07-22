@@ -36,8 +36,8 @@ export function LoginForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-4">
-      <div>
-        <label htmlFor="email" className="block font-body text-sm font-semibold text-charcoal">
+      <div className="field">
+        <label htmlFor="email" >
           Email
         </label>
         <input
@@ -46,11 +46,11 @@ export function LoginForm() {
           type="email"
           required
           autoComplete="email"
-          className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+          className="input"
         />
       </div>
-      <div>
-        <label htmlFor="password" className="block font-body text-sm font-semibold text-charcoal">
+      <div className="field">
+        <label htmlFor="password" >
           Password
         </label>
         <input
@@ -59,18 +59,18 @@ export function LoginForm() {
           type="password"
           required
           autoComplete="current-password"
-          className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+          className="input"
         />
       </div>
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="rounded-md bg-evergreen px-6 py-3 font-body font-semibold text-warmStone transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="btn btn-primary"
       >
         {status === "submitting" ? "Signing in..." : "Sign in"}
       </button>
       {status === "error" ? (
-        <p className="font-body text-red-700" role="alert">
+        <p style={{ fontSize: "14px", color: "#a13328" }} role="alert">
           {errorMessage}
         </p>
       ) : null}

@@ -29,8 +29,8 @@ export function OpportunityForm({
       {opportunity ? <input type="hidden" name="opportunityId" value={opportunity.id} /> : null}
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="title" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="title" >
             Title
           </label>
           <input
@@ -38,11 +38,11 @@ export function OpportunityForm({
             name="title"
             required
             defaultValue={opportunity?.title}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
         </div>
-        <div>
-          <label htmlFor="funder" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="funder" >
             Funder
           </label>
           <input
@@ -51,13 +51,13 @@ export function OpportunityForm({
             required
             placeholder="e.g. Oklahoma State Department of Health"
             defaultValue={opportunity?.funder}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
         </div>
       </div>
 
-      <div>
-        <label htmlFor="programName" className="block font-body text-sm font-semibold text-charcoal">
+      <div className="field">
+        <label htmlFor="programName" >
           Program / RFP name
         </label>
         <input
@@ -65,21 +65,21 @@ export function OpportunityForm({
           name="programName"
           placeholder="e.g. RHTP Subrecipient Window 3"
           defaultValue={opportunity?.program_name ?? ""}
-          className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+          className="input"
         />
-        <p className="mt-1 font-body text-xs text-charcoal/50">The specific award/RFP, distinct from the funder itself.</p>
+        <p className="text-muted" style={{ fontSize: "11px", margin: "4px 0 0" }}>The specific award/RFP, distinct from the funder itself.</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="stage" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="stage" >
             Stage
           </label>
           <select
             id="stage"
             name="stage"
             defaultValue={opportunity?.stage ?? "Identified"}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           >
             {STAGES.map((stage) => (
               <option key={stage} value={stage}>
@@ -88,8 +88,8 @@ export function OpportunityForm({
             ))}
           </select>
         </div>
-        <div>
-          <label htmlFor="probability" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="probability" >
             Win probability (%)
           </label>
           <input
@@ -99,14 +99,14 @@ export function OpportunityForm({
             min="0"
             max="100"
             defaultValue={opportunity?.probability ?? undefined}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="amountRequested" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="amountRequested" >
             Amount requested (USD)
           </label>
           <input
@@ -116,11 +116,11 @@ export function OpportunityForm({
             step="0.01"
             min="0"
             defaultValue={centsToDollarsInput(opportunity?.amount_requested_cents)}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
         </div>
-        <div>
-          <label htmlFor="amountAwarded" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="amountAwarded" >
             Amount awarded (USD)
           </label>
           <input
@@ -131,15 +131,15 @@ export function OpportunityForm({
             min="0"
             placeholder="Fill in once awarded"
             defaultValue={centsToDollarsInput(opportunity?.amount_awarded_cents)}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
-          <p className="mt-1 font-body text-xs text-charcoal/50">Can differ from the amount requested.</p>
+          <p className="text-muted" style={{ fontSize: "11px", margin: "4px 0 0" }}>Can differ from the amount requested.</p>
         </div>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="loiDeadline" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="loiDeadline" >
             LOI deadline
           </label>
           <input
@@ -147,11 +147,11 @@ export function OpportunityForm({
             name="loiDeadline"
             type="date"
             defaultValue={opportunity?.loi_deadline ?? ""}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
         </div>
-        <div>
-          <label htmlFor="submissionDeadline" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="submissionDeadline" >
             Submission deadline
           </label>
           <input
@@ -159,11 +159,11 @@ export function OpportunityForm({
             name="submissionDeadline"
             type="date"
             defaultValue={opportunity?.submission_deadline ?? ""}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
         </div>
-        <div>
-          <label htmlFor="decisionDate" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="decisionDate" >
             Expected decision date
           </label>
           <input
@@ -171,11 +171,11 @@ export function OpportunityForm({
             name="decisionDate"
             type="date"
             defaultValue={opportunity?.decision_date ?? ""}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
         </div>
-        <div>
-          <label htmlFor="awardStartDate" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="awardStartDate" >
             Award start date
           </label>
           <input
@@ -183,44 +183,43 @@ export function OpportunityForm({
             name="awardStartDate"
             type="date"
             defaultValue={opportunity?.award_start_date ?? ""}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           />
         </div>
       </div>
 
-      <div className="rounded-md border border-charcoal/10 p-4">
-        <h2 className="font-body text-sm font-semibold uppercase tracking-wide text-charcoal/50">
-          Organization &amp; contact
-        </h2>
-        <p className="mt-1 font-body text-xs text-charcoal/50">
+      <div className="card blueprint">
+        <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+        <h6>Organization &amp; contact</h6>
+        <p className="text-muted" style={{ fontSize: "11px", margin: "4px 0 0" }}>
           The organization and person on the other side of this opportunity -- not necessarily the funder itself
           (e.g. a program officer, or a hospital&rsquo;s point of contact).
         </p>
         <div className="mt-3 grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="companyName" className="block font-body text-sm font-semibold text-charcoal">
+          <div className="field">
+            <label htmlFor="companyName" >
               Company / organization
             </label>
             <input
               id="companyName"
               name="companyName"
               defaultValue={opportunity?.company_name ?? ""}
-              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+              className="input"
             />
           </div>
-          <div>
-            <label htmlFor="contactName" className="block font-body text-sm font-semibold text-charcoal">
+          <div className="field">
+            <label htmlFor="contactName" >
               Contact name
             </label>
             <input
               id="contactName"
               name="contactName"
               defaultValue={opportunity?.contact_name ?? ""}
-              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+              className="input"
             />
           </div>
-          <div>
-            <label htmlFor="contactEmail" className="block font-body text-sm font-semibold text-charcoal">
+          <div className="field">
+            <label htmlFor="contactEmail" >
               Contact email
             </label>
             <input
@@ -228,11 +227,11 @@ export function OpportunityForm({
               name="contactEmail"
               type="email"
               defaultValue={opportunity?.contact_email ?? ""}
-              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+              className="input"
             />
           </div>
-          <div>
-            <label htmlFor="contactPhone" className="block font-body text-sm font-semibold text-charcoal">
+          <div className="field">
+            <label htmlFor="contactPhone" >
               Contact phone
             </label>
             <input
@@ -240,22 +239,22 @@ export function OpportunityForm({
               name="contactPhone"
               type="tel"
               defaultValue={opportunity?.contact_phone ?? ""}
-              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+              className="input"
             />
           </div>
         </div>
       </div>
 
       {owners ? (
-        <div>
-          <label htmlFor="ownerUserId" className="block font-body text-sm font-semibold text-charcoal">
+        <div className="field">
+          <label htmlFor="ownerUserId" >
             Owner
           </label>
           <select
             id="ownerUserId"
             name="ownerUserId"
             defaultValue={opportunity?.owner_user_id}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+            className="input"
           >
             {owners.map((owner) => (
               <option key={owner.id} value={owner.id}>
@@ -266,8 +265,8 @@ export function OpportunityForm({
         </div>
       ) : null}
 
-      <div>
-        <label htmlFor="notes" className="block font-body text-sm font-semibold text-charcoal">
+      <div className="field">
+        <label htmlFor="notes" >
           Notes
         </label>
         <textarea
@@ -275,14 +274,11 @@ export function OpportunityForm({
           name="notes"
           rows={4}
           defaultValue={opportunity?.notes ?? ""}
-          className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+          className="input"
         />
       </div>
 
-      <button
-        type="submit"
-        className="rounded-md bg-evergreen px-6 py-3 font-body font-semibold text-warmStone transition-opacity hover:opacity-90"
-      >
+      <button type="submit" className="btn btn-primary">
         {opportunity ? "Save changes" : "Create opportunity"}
       </button>
     </form>

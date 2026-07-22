@@ -21,60 +21,50 @@ export function OpportunityActivityTimeline({
 }) {
   return (
     <div>
-      <h2 className="font-headline text-lg font-bold text-charcoal">Activity</h2>
+      <h2 style={{ fontSize: "17px" }}>Activity</h2>
 
-      <form action={addOpportunityActivityAction} className="mt-3 space-y-2 rounded-md border border-charcoal/10 p-3">
+      <form action={addOpportunityActivityAction} className="card blueprint mt-3 space-y-2">
+        <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
         <input type="hidden" name="opportunityId" value={opportunityId} />
         <div className="flex gap-2">
-          <select
-            name="activityType"
-            defaultValue="Note"
-            className="rounded-md border border-charcoal/20 px-2 py-2 font-body text-sm"
-          >
+          <select name="activityType" defaultValue="Note" className="input" style={{ width: "auto" }}>
             <option value="Note">Note</option>
             <option value="Call">Call</option>
             <option value="Email">Email</option>
             <option value="Meeting">Meeting</option>
             <option value="Task">Task</option>
           </select>
-          <input
-            type="date"
-            name="dueDate"
-            title="Due date (for tasks)"
-            className="rounded-md border border-charcoal/20 px-2 py-2 font-body text-sm"
-          />
+          <input type="date" name="dueDate" title="Due date (for tasks)" className="input" style={{ width: "auto" }} />
         </div>
         <textarea
           name="body"
           required
           rows={2}
           placeholder="What happened, or what needs to happen?"
-          className="w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
+          className="input"
         />
-        <button
-          type="submit"
-          className="rounded-md border border-charcoal/20 px-4 py-2 font-body text-sm text-charcoal hover:border-evergreen"
-        >
+        <button type="submit" className="btn btn-secondary">
           Log activity
         </button>
       </form>
 
       {activities.length === 0 ? (
-        <p className="mt-3 font-body text-sm text-charcoal/50">No activity logged yet.</p>
+        <p className="text-muted mt-3" style={{ fontSize: "13px" }}>No activity logged yet.</p>
       ) : (
         <ul className="mt-3 space-y-3">
           {activities.map((activity) => (
-            <li key={activity.id} className="flex gap-3 rounded-md border border-charcoal/10 p-3">
+            <li key={activity.id} className="card blueprint flex gap-3">
+              <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
               <span aria-hidden className="text-lg">
                 {TYPE_ICONS[activity.activity_type] ?? "\u{1F4DD}"}
               </span>
               <div className="flex-1">
-                <p className="font-body text-sm font-semibold text-charcoal">
+                <p style={{ fontSize: "13px", fontWeight: 500 }}>
                   {activity.activity_type} &middot; {activity.author_name}
                   {activity.due_date ? ` · due ${activity.due_date}` : ""}
                 </p>
-                <p className="mt-1 font-body text-sm text-charcoal/80">{activity.body}</p>
-                <p className="mt-1 font-body text-xs text-charcoal/40">{activity.created_at}</p>
+                <p className="mt-1" style={{ fontSize: "13px" }}>{activity.body}</p>
+                <p className="text-muted mt-1" style={{ fontSize: "11px" }}>{activity.created_at}</p>
               </div>
               {activity.activity_type === "Task" ? (
                 <form action={toggleOpportunityActivityAction}>
@@ -83,11 +73,8 @@ export function OpportunityActivityTimeline({
                   <input type="hidden" name="completed" value={activity.completed ? "false" : "true"} />
                   <button
                     type="submit"
-                    className={`rounded-md border px-2 py-1 font-body text-xs ${
-                      activity.completed
-                        ? "border-evergreen text-evergreen"
-                        : "border-charcoal/20 text-charcoal/60 hover:border-evergreen"
-                    }`}
+                    className={activity.completed ? "tag tag-accent" : "tag tag-neutral"}
+                    style={{ border: 0, cursor: "pointer" }}
                   >
                     {activity.completed ? "Done" : "Mark done"}
                   </button>

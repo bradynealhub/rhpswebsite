@@ -27,7 +27,7 @@ const MESSAGE_AWARENESS = 1;
 const MESSAGE_CONTROL = 2;
 const CONTROL_READONLY_CHANGED = 0;
 
-const CURSOR_COLORS = ["#0F4D3A", "#234A6F", "#C47A52", "#7A3B69", "#2B7A78", "#8A5A2B"];
+const CURSOR_COLORS = ["#416180", "#486077", "#5d5d60", "#1d2d3d", "#749dc4", "#2b2b2d"];
 function colorForUserId(userId: string): string {
   let hash = 0;
   for (let i = 0; i < userId.length; i++) hash = (hash * 31 + userId.charCodeAt(i)) >>> 0;
@@ -185,15 +185,12 @@ function ExportMenu({ editor, title }: { editor: Editor; title: string }) {
 
   return (
     <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="rounded-md border border-charcoal/20 px-3 py-1.5 font-body text-sm text-charcoal hover:border-evergreen"
-      >
+      <button type="button" onClick={() => setOpen((v) => !v)} className="btn btn-secondary">
         Export &#9662;
       </button>
       {open ? (
-        <div className="absolute right-0 z-10 mt-1 w-48 rounded-md border border-charcoal/10 bg-white py-1 shadow-lg">
+        <div className="blueprint elev-md" style={{ position: "absolute", right: 0, top: "calc(100% + 4px)", zIndex: 10, width: "192px", background: "var(--color-bg)" }}>
+          <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
           <button
             type="button"
             onClick={() => {
@@ -204,7 +201,7 @@ function ExportMenu({ editor, title }: { editor: Editor; title: string }) {
               );
               setOpen(false);
             }}
-            className="block w-full px-3 py-2 text-left font-body text-sm text-charcoal hover:bg-warmStone"
+            className="side-link"
           >
             Download as HTML
           </button>
@@ -214,7 +211,8 @@ function ExportMenu({ editor, title }: { editor: Editor; title: string }) {
               downloadFile(`${safeTitle}.txt`, editor.getText(), "text/plain");
               setOpen(false);
             }}
-            className="block w-full px-3 py-2 text-left font-body text-sm text-charcoal hover:bg-warmStone"
+            className="side-link"
+            style={{ borderTop: "1px solid var(--color-divider)" }}
           >
             Download as text
           </button>
@@ -224,7 +222,8 @@ function ExportMenu({ editor, title }: { editor: Editor; title: string }) {
               setOpen(false);
               window.print();
             }}
-            className="block w-full px-3 py-2 text-left font-body text-sm text-charcoal hover:bg-warmStone"
+            className="side-link"
+            style={{ borderTop: "1px solid var(--color-divider)" }}
           >
             Print / Save as PDF
           </button>
@@ -278,7 +277,7 @@ export function CollaborativeEditor({
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <div className="flex items-center gap-3 font-body text-xs text-charcoal/50">
+        <div className="text-muted flex items-center gap-3" style={{ fontSize: "12px" }}>
           <span>{connected ? (saveStatus === "saving" ? "Saving..." : "All changes saved") : "Reconnecting..."}</span>
           {presence.length > 0 ? (
             <div className="flex items-center -space-x-1.5">
@@ -286,8 +285,8 @@ export function CollaborativeEditor({
                 <span
                   key={i}
                   title={user.name}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full border-2 border-white text-xs font-semibold text-white"
-                  style={{ backgroundColor: user.color }}
+                  className="avatar"
+                  style={{ width: "28px", height: "28px", fontSize: "11px", background: user.color, boxShadow: "0 0 0 2px var(--color-bg)" }}
                 >
                   {user.name.charAt(0).toUpperCase()}
                 </span>
@@ -299,7 +298,7 @@ export function CollaborativeEditor({
       </div>
 
       {readOnly ? (
-        <p className="mb-2 rounded-md bg-copperAccent/10 px-3 py-2 font-body text-sm text-copperAccent">
+        <p className="mb-2" style={{ padding: "8px 12px", background: "var(--color-accent-2-100)", color: "var(--color-accent-2-800)", fontSize: "14px" }}>
           This document is under review and is read-only.
         </p>
       ) : null}
@@ -308,9 +307,8 @@ export function CollaborativeEditor({
 
       <EditorContent
         editor={editor}
-        className={`min-h-[400px] border border-charcoal/20 px-4 py-3 font-body text-charcoal [&_.ProseMirror]:min-h-[380px] [&_.ProseMirror]:outline-none [&_h1]:font-headline [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:font-headline [&_h2]:text-xl [&_h2]:font-bold [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_a]:text-evergreen [&_a]:underline [&_blockquote]:border-l-2 [&_blockquote]:border-charcoal/20 [&_blockquote]:pl-4 [&_blockquote]:italic ${
-          readOnly ? "rounded-md" : "rounded-b-md"
-        }`}
+        className="min-h-[400px] px-4 py-3 [&_.ProseMirror]:min-h-[380px] [&_.ProseMirror]:outline-none [&_a]:text-[color:var(--color-accent)] [&_a]:underline [&_h1]:font-[family-name:var(--font-heading)] [&_h1]:text-2xl [&_h1]:font-semibold [&_h2]:font-[family-name:var(--font-heading)] [&_h2]:text-xl [&_h2]:font-semibold [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-6 [&_ol]:list-decimal [&_ol]:pl-6 [&_blockquote]:border-l-2 [&_blockquote]:border-[color:var(--color-divider)] [&_blockquote]:pl-4 [&_blockquote]:italic"
+        style={{ border: "1px solid var(--color-divider)", borderTop: readOnly ? "1px solid var(--color-divider)" : 0 }}
       />
       {!readOnly && editor ? <SubmitForReviewButton documentId={documentId} editor={editor} /> : null}
     </div>
@@ -341,16 +339,11 @@ function SubmitForReviewButton({ documentId, editor }: { documentId: string; edi
 
   return (
     <div className="mt-3">
-      <button
-        type="button"
-        onClick={handleSubmit}
-        disabled={status === "submitting"}
-        className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90 disabled:opacity-60"
-      >
+      <button type="button" onClick={handleSubmit} disabled={status === "submitting"} className="btn btn-primary">
         {status === "submitting" ? "Submitting..." : "Submit for review"}
       </button>
       {status === "error" ? (
-        <p className="mt-1 font-body text-sm text-red-700" role="alert">
+        <p className="mt-1" style={{ fontSize: "13px", color: "#a13328" }} role="alert">
           {errorMessage}
         </p>
       ) : null}

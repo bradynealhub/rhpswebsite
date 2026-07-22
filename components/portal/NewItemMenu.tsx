@@ -27,23 +27,20 @@ export function NewItemMenu({ folderId }: { folderId: string | null }) {
 
   return (
     <div ref={containerRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setMenuOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone shadow-sm hover:opacity-90"
-      >
+      <button type="button" onClick={() => setMenuOpen((v) => !v)} className="btn btn-primary elev-sm">
         <span className="text-base leading-none">+</span> New
       </button>
 
       {menuOpen ? (
-        <div className="absolute left-0 top-full z-20 mt-1 w-48 rounded-md border border-charcoal/10 bg-white py-1 shadow-lg">
+        <div className="blueprint elev-md" style={{ position: "absolute", left: 0, top: "calc(100% + 4px)", zIndex: 20, width: "192px", background: "var(--color-bg)" }}>
+          <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
           <button
             type="button"
             onClick={() => {
               setActiveForm("folder");
               setMenuOpen(false);
             }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left font-body text-sm text-charcoal hover:bg-warmStone"
+            className="side-link"
           >
             📁 Folder
           </button>
@@ -53,7 +50,8 @@ export function NewItemMenu({ folderId }: { folderId: string | null }) {
               setActiveForm("document");
               setMenuOpen(false);
             }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left font-body text-sm text-charcoal hover:bg-warmStone"
+            className="side-link"
+            style={{ borderTop: "1px solid var(--color-divider)" }}
           >
             📝 Document
           </button>
@@ -63,7 +61,8 @@ export function NewItemMenu({ folderId }: { folderId: string | null }) {
               setActiveForm("upload");
               setMenuOpen(false);
             }}
-            className="flex w-full items-center gap-2 px-3 py-2 text-left font-body text-sm text-charcoal hover:bg-warmStone"
+            className="side-link"
+            style={{ borderTop: "1px solid var(--color-divider)" }}
           >
             ⬆️ Upload
           </button>

@@ -23,19 +23,21 @@ export function OpportunityLinks({
 }) {
   return (
     <div>
-      <h2 className="font-headline text-lg font-bold text-charcoal">Links</h2>
+      <h2 style={{ fontSize: "17px" }}>Links</h2>
 
       {links.length === 0 ? (
-        <p className="mt-2 font-body text-sm text-charcoal/50">No links yet.</p>
+        <p className="text-muted mt-2" style={{ fontSize: "13px" }}>No links yet.</p>
       ) : (
         <ul className="mt-2 space-y-1.5">
           {links.map((link) => (
-            <li key={link.id} className="flex items-center justify-between gap-2 rounded-md border border-charcoal/10 px-3 py-2">
+            <li key={link.id} className="card blueprint flex items-center justify-between gap-2">
+              <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
               <a
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-w-0 truncate font-body text-sm text-evergreen hover:underline"
+                className="min-w-0 truncate"
+                style={{ fontSize: "13px" }}
                 title={link.url}
               >
                 🔗 {link.label || hostnameOf(link.url)}
@@ -44,7 +46,7 @@ export function OpportunityLinks({
                 <form action={removeOpportunityLinkAction} className="shrink-0">
                   <input type="hidden" name="opportunityId" value={opportunityId} />
                   <input type="hidden" name="linkId" value={link.id} />
-                  <button type="submit" className="font-body text-xs text-charcoal/50 hover:text-red-700">
+                  <button type="submit" className="btn btn-ghost" style={{ fontSize: "12px" }}>
                     Remove
                   </button>
                 </form>
@@ -54,24 +56,12 @@ export function OpportunityLinks({
         </ul>
       )}
 
-      <form action={addOpportunityLinkAction} className="mt-3 space-y-2 rounded-md border border-charcoal/10 p-3">
+      <form action={addOpportunityLinkAction} className="card blueprint mt-3 space-y-2">
+        <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
         <input type="hidden" name="opportunityId" value={opportunityId} />
-        <input
-          name="url"
-          type="url"
-          required
-          placeholder="https://..."
-          className="w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
-        />
-        <input
-          name="label"
-          placeholder="Label (optional)"
-          className="w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
-        />
-        <button
-          type="submit"
-          className="rounded-md border border-charcoal/20 px-4 py-2 font-body text-sm text-charcoal hover:border-evergreen"
-        >
+        <input name="url" type="url" required placeholder="https://..." className="input" />
+        <input name="label" placeholder="Label (optional)" className="input" />
+        <button type="submit" className="btn btn-secondary">
           Add link
         </button>
       </form>

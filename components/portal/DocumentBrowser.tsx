@@ -6,11 +6,11 @@ import { listDocuments, listFolders } from "@/lib/portalDb";
 import { getCurrentUser } from "@/lib/portalSession";
 import type { DocumentFolder } from "@/lib/portalTypes";
 
-const STATUS_PILL_CLASSES: Record<string, string> = {
-  Draft: "bg-charcoal/10 text-charcoal/70",
-  "In Review": "bg-copperAccent/10 text-copperAccent",
-  Approved: "bg-evergreen/10 text-evergreen",
-  Rejected: "bg-red-50 text-red-700",
+const STATUS_TAG_CLASSES: Record<string, string> = {
+  Draft: "tag tag-neutral",
+  "In Review": "tag tag-accent-2",
+  Approved: "tag tag-accent",
+  Rejected: "tag tag-danger",
 };
 
 export async function DocumentBrowser({
@@ -36,16 +36,12 @@ export async function DocumentBrowser({
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <nav aria-label="Breadcrumb" className="font-body text-sm text-charcoal/60">
-          <Link href="/portal/documents" className="hover:text-evergreen">
-            Documents
-          </Link>
+        <nav aria-label="Breadcrumb" className="text-muted flex items-center gap-1.5" style={{ fontSize: "13px" }}>
+          <Link href="/portal/documents">Documents</Link>
           {breadcrumbs.map((folder) => (
-            <span key={folder.id}>
-              {" / "}
-              <Link href={`/portal/documents/folder/${folder.id}`} className="hover:text-evergreen">
-                {folder.name}
-              </Link>
+            <span key={folder.id} className="flex items-center gap-1.5">
+              <span>/</span>
+              <Link href={`/portal/documents/folder/${folder.id}`}>{folder.name}</Link>
             </span>
           ))}
         </nav>
@@ -53,19 +49,21 @@ export async function DocumentBrowser({
       </div>
 
       {isEmpty ? (
-        <p className="mt-10 font-body text-sm text-charcoal/50">Nothing here yet -- use "+ New" to get started.</p>
+        <p className="text-muted mt-10" style={{ fontSize: "14px" }}>
+          Nothing here yet -- use &quot;+ New&quot; to get started.
+        </p>
       ) : (
         <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
           {folders.map((folder) => (
             <Link
               key={folder.id}
               href={`/portal/documents/folder/${folder.id}`}
-              className="group flex h-36 flex-col items-center justify-center gap-2 rounded-lg border border-charcoal/10 bg-white p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-evergreen/40 hover:shadow-md"
+              className="card blueprint elev-sm tile-hover group flex h-36 flex-col items-center justify-center gap-2 text-center transition"
+              style={{ cursor: "pointer" }}
             >
+              <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
               <FolderIcon />
-              <span className="line-clamp-2 font-body text-sm text-charcoal group-hover:text-evergreen">
-                {folder.name}
-              </span>
+              <span className="line-clamp-2" style={{ fontSize: "14px" }}>{folder.name}</span>
             </Link>
           ))}
 
@@ -73,8 +71,10 @@ export async function DocumentBrowser({
             <Link
               key={doc.id}
               href={`/portal/documents/file/${doc.id}`}
-              className="group flex h-36 flex-col items-center justify-center gap-2 rounded-lg border border-charcoal/10 bg-white p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-evergreen/40 hover:shadow-md"
+              className="card blueprint elev-sm tile-hover group flex h-36 flex-col items-center justify-center gap-2 text-center transition"
+              style={{ cursor: "pointer" }}
             >
+              <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
               <div className="relative">
                 {doc.doc_type === "richtext" ? (
                   <RichTextDocIcon />
@@ -83,14 +83,8 @@ export async function DocumentBrowser({
                 )}
                 {doc.visibility === "Private" ? <PrivateLockBadge /> : null}
               </div>
-              <span className="line-clamp-2 font-body text-sm text-charcoal group-hover:text-evergreen">
-                {doc.title}
-              </span>
-              <span
-                className={`rounded-full px-2 py-0.5 font-body text-[11px] font-semibold ${STATUS_PILL_CLASSES[doc.status] ?? ""}`}
-              >
-                {doc.status}
-              </span>
+              <span className="line-clamp-2" style={{ fontSize: "14px" }}>{doc.title}</span>
+              <span className={STATUS_TAG_CLASSES[doc.status] ?? "tag tag-neutral"}>{doc.status}</span>
             </Link>
           ))}
         </div>

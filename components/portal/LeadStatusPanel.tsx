@@ -8,15 +8,13 @@ import type { LeadWithDetails } from "@/lib/portalTypes";
 export function LeadStatusPanel({ lead }: { lead: LeadWithDetails }) {
   if (!lead.owner_user_id) {
     return (
-      <div className="rounded-md border border-copperAccent/40 bg-copperAccent/5 p-4">
-        <h2 className="font-headline text-lg font-bold text-charcoal">Unclaimed</h2>
-        <p className="mt-1 font-body text-sm text-charcoal/70">Claim this lead to start triaging it.</p>
+      <div className="card blueprint" style={{ borderColor: "var(--color-accent-2)", background: "var(--color-accent-2-100)" }}>
+        <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+        <h2 style={{ fontSize: "17px" }}>Unclaimed</h2>
+        <p className="mt-1" style={{ fontSize: "13px" }}>Claim this lead to start triaging it.</p>
         <form action={claimLeadAction} className="mt-3">
           <input type="hidden" name="leadId" value={lead.id} />
-          <button
-            type="submit"
-            className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90"
-          >
+          <button type="submit" className="btn btn-primary">
             Claim this lead
           </button>
         </form>
@@ -26,9 +24,10 @@ export function LeadStatusPanel({ lead }: { lead: LeadWithDetails }) {
 
   if (lead.status === "Converted") {
     return (
-      <div className="rounded-md border border-evergreen/30 bg-evergreen/5 p-4">
-        <h2 className="font-headline text-lg font-bold text-charcoal">Converted</h2>
-        <p className="mt-1 font-body text-sm text-charcoal/70">
+      <div className="card blueprint" style={{ borderColor: "var(--color-accent)", background: "var(--color-accent-100)" }}>
+        <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+        <h2 style={{ fontSize: "17px" }}>Converted</h2>
+        <p className="mt-1" style={{ fontSize: "13px" }}>
           This lead became an opportunity and no longer needs triage.
         </p>
       </div>
@@ -36,66 +35,52 @@ export function LeadStatusPanel({ lead }: { lead: LeadWithDetails }) {
   }
 
   return (
-    <div className="rounded-md border border-charcoal/10 p-4">
-      <h2 className="font-headline text-lg font-bold text-charcoal">Status</h2>
-      <p className="mt-1 font-body text-sm text-charcoal/60">
+    <div className="card blueprint">
+      <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+      <h2 style={{ fontSize: "17px" }}>Status</h2>
+      <p className="text-muted mt-1" style={{ fontSize: "13px" }}>
         Claimed by {lead.owner_name} &middot; currently <strong>{lead.status}</strong>
       </p>
 
       <form action={updateLeadStatusAction} className="mt-3 space-y-3">
         <input type="hidden" name="leadId" value={lead.id} />
-        <div>
-          <label htmlFor="notes" className="block font-body text-sm font-semibold text-charcoal">
-            Working notes
-          </label>
+        <div className="field">
+          <label htmlFor="notes">Working notes</label>
           <textarea
             id="notes"
             name="notes"
             rows={3}
             defaultValue={lead.notes ?? ""}
             placeholder="Internal notes -- not the inquiry itself"
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
+            className="input"
           />
         </div>
         {lead.status !== "Disqualified" ? (
-          <div>
-            <label htmlFor="disqualifyReason" className="block font-body text-sm font-semibold text-charcoal">
-              If disqualifying, why?
-            </label>
+          <div className="field">
+            <label htmlFor="disqualifyReason">If disqualifying, why?</label>
             <input
               id="disqualifyReason"
               name="disqualifyReason"
               placeholder="e.g. out of service area, not a fit"
-              className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
+              className="input"
             />
           </div>
         ) : (
-          <p className="font-body text-sm text-charcoal/70">
-            Disqualified: {lead.disqualify_reason ?? "no reason given"}
-          </p>
+          <p style={{ fontSize: "13px" }}>Disqualified: {lead.disqualify_reason ?? "no reason given"}</p>
         )}
         <div className="flex flex-wrap gap-2">
-          <button
-            type="submit"
-            name="status"
-            value="Contacted"
-            className="rounded-md border border-slateBlue px-3 py-2 font-body text-sm font-semibold text-slateBlue hover:bg-slateBlue hover:text-white"
-          >
+          <button type="submit" name="status" value="Contacted" className="btn btn-secondary">
             Mark Contacted
           </button>
-          <button
-            type="submit"
-            name="status"
-            value="Qualified"
-            className="rounded-md border border-evergreen px-3 py-2 font-body text-sm font-semibold text-evergreen hover:bg-evergreen hover:text-white"
-          >
+          <button type="submit" name="status" value="Qualified" className="btn btn-primary">
             Mark Qualified
           </button>
           <button
             type="submit"
             name="status"
             value="Disqualified"
-            className="rounded-md border border-red-700 px-3 py-2 font-body text-sm font-semibold text-red-700 hover:bg-red-700 hover:text-white"
+            className="btn btn-secondary"
+            style={{ color: "#a13328", borderColor: "#a13328" }}
           >
             Disqualify
           </button>
