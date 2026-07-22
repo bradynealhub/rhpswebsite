@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { FileTypeIcon, FolderIcon, PrivateLockBadge, RichTextDocIcon } from "@/components/portal/DocumentIcons";
-import { NewItemMenu } from "@/components/portal/NewItemMenu";
 import { listDocuments, listFolders } from "@/lib/portalDb";
 import { getCurrentUser } from "@/lib/portalSession";
 import type { DocumentFolder } from "@/lib/portalTypes";
@@ -16,9 +15,11 @@ const STATUS_TAG_CLASSES: Record<string, string> = {
 export async function DocumentBrowser({
   currentFolderId,
   breadcrumbs,
+  filter = "all",
 }: {
   currentFolderId: string | null;
   breadcrumbs: DocumentFolder[];
+  filter?: "all" | "mine" | "shared";
 }) {
   const user = await getCurrentUser();
   if (!user) redirect("/portal/login");
@@ -26,16 +27,18 @@ export async function DocumentBrowser({
   // Private and Shared documents are browsed in the same tree -- listDocuments
   // filters per viewer, so a document that's private to someone else simply
   // doesn't appear here at all, rather than living behind a separate tab.
+  // "mine"/"shared" are flat library views (sidebar nav) and ignore folder
+  // nesting entirely, so folders aren't fetched or shown for those.
   const [folders, documents] = await Promise.all([
-    listFolders(currentFolderId),
-    listDocuments(currentFolderId, { id: user.id, isPlatformAdmin: Boolean(user.is_platform_admin) }),
+    filter === "all" ? listFolders(currentFolderId) : Promise.resolve([]),
+    listDocuments(currentFolderId, { id: user.id, isPlatformAdmin: Boolean(user.is_platform_admin) }, filter),
   ]);
 
   const isEmpty = folders.length === 0 && documents.length === 0;
 
   return (
     <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      {filter === "all" ? (
         <nav aria-label="Breadcrumb" className="text-muted flex items-center gap-1.5" style={{ fontSize: "13px" }}>
           <Link href="/portal/documents">Documents</Link>
           {breadcrumbs.map((folder) => (
@@ -45,8 +48,7 @@ export async function DocumentBrowser({
             </span>
           ))}
         </nav>
-        <NewItemMenu folderId={currentFolderId} />
-      </div>
+      ) : null}
 
       {isEmpty ? (
         <p className="text-muted mt-10" style={{ fontSize: "14px" }}>

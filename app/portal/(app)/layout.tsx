@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { PortalNav } from "@/components/portal/PortalNav";
-import { countNewLeads } from "@/lib/portalDb";
+import { PortalSidebar } from "@/components/portal/PortalSidebar";
+import { countNewLeads, listFolders } from "@/lib/portalDb";
 import { getCurrentUser } from "@/lib/portalSession";
 import "../portal-design-system.css";
 
@@ -12,12 +13,15 @@ export default async function PortalAppLayout({ children }: { children: ReactNod
   const user = await getCurrentUser();
   if (!user) redirect("/portal/login");
 
-  const newLeadsCount = await countNewLeads();
+  const [newLeadsCount, folders] = await Promise.all([countNewLeads(), listFolders(null)]);
 
   return (
-    <div className="portal-ds min-h-screen">
-      <PortalNav user={user} newLeadsCount={newLeadsCount} />
-      <div className="mx-auto max-w-6xl px-6 py-10">{children}</div>
+    <div className="portal-ds portal-shell">
+      <PortalNav user={user} />
+      <div className="portal-shell-body">
+        <PortalSidebar user={user} newLeadsCount={newLeadsCount} folders={folders} />
+        <main className="portal-shell-main">{children}</main>
+      </div>
     </div>
   );
 }

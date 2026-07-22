@@ -10,7 +10,7 @@ type ActiveForm = "folder" | "document" | "upload" | null;
 // Drive-style single "+ New" trigger replacing three separate buttons --
 // the dropdown just picks which of the three existing (now controllable)
 // forms to show in a panel underneath.
-export function NewItemMenu({ folderId }: { folderId: string | null }) {
+export function NewItemMenu({ folderId, block = false }: { folderId: string | null; block?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeForm, setActiveForm] = useState<ActiveForm>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -26,13 +26,18 @@ export function NewItemMenu({ folderId }: { folderId: string | null }) {
   }, []);
 
   return (
-    <div ref={containerRef} className="relative">
-      <button type="button" onClick={() => setMenuOpen((v) => !v)} className="btn btn-primary elev-sm">
+    <div ref={containerRef} className="relative" style={block ? { width: "100%" } : undefined}>
+      <button
+        type="button"
+        onClick={() => setMenuOpen((v) => !v)}
+        className={`btn btn-primary elev-sm ${block ? "btn-block" : ""}`}
+        style={block ? { justifyContent: "center" } : undefined}
+      >
         <span className="text-base leading-none">+</span> New
       </button>
 
       {menuOpen ? (
-        <div className="blueprint elev-md" style={{ position: "absolute", left: 0, top: "calc(100% + 4px)", zIndex: 20, width: "192px", background: "var(--color-bg)" }}>
+        <div className="blueprint elev-md" style={{ position: "absolute", left: 0, right: block ? 0 : undefined, top: "calc(100% + 4px)", zIndex: 20, width: block ? undefined : "192px", background: "var(--color-bg)" }}>
           <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
           <button
             type="button"

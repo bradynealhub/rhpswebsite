@@ -385,20 +385,45 @@ const DOCUMENT_WITH_UPLOADER_SELECT = `
 export async function listDocuments(
   folderId: string | null,
   viewer: { id: string; isPlatformAdmin: boolean },
+  filter: "all" | "mine" | "shared" = "all",
 ): Promise<DocumentWithUploader[]> {
   const db = await getPortalDb();
-  const visibilityClause = viewer.isPlatformAdmin
-    ? "1=1"
-    : `(documents.visibility = 'Shared'
-        OR documents.uploader_user_id = ?
-        OR documents.id IN (SELECT document_id FROM document_shares WHERE user_id = ?))`;
-  const folderClause = folderId ? "documents.folder_id = ?" : "documents.folder_id IS NULL";
+  const clauses: string[] = [];
+  const params: string[] = [];
+
+  // "mine"/"shared" are flat, cross-folder library views (sidebar nav) --
+  // only "all" (plain folder browsing) is scoped to the current folder.
+  if (filter === "all") {
+    clauses.push(folderId ? "documents.folder_id = ?" : "documents.folder_id IS NULL");
+    if (folderId) params.push(folderId);
+  }
+
+  if (filter === "mine") {
+    clauses.push("documents.uploader_user_id = ?");
+    params.push(viewer.id);
+  } else if (filter === "shared") {
+    clauses.push(
+      viewer.isPlatformAdmin
+        ? "documents.uploader_user_id != ?"
+        : `documents.uploader_user_id != ? AND (documents.visibility = 'Shared' OR documents.id IN (SELECT document_id FROM document_shares WHERE user_id = ?))`,
+    );
+    params.push(viewer.id);
+    if (!viewer.isPlatformAdmin) params.push(viewer.id);
+  } else {
+    clauses.push(
+      viewer.isPlatformAdmin
+        ? "1=1"
+        : `(documents.visibility = 'Shared'
+            OR documents.uploader_user_id = ?
+            OR documents.id IN (SELECT document_id FROM document_shares WHERE user_id = ?))`,
+    );
+    if (!viewer.isPlatformAdmin) params.push(viewer.id, viewer.id);
+  }
 
   const stmt = db.prepare(
-    `${DOCUMENT_WITH_UPLOADER_SELECT} WHERE ${folderClause} AND ${visibilityClause} ORDER BY documents.created_at DESC`,
+    `${DOCUMENT_WITH_UPLOADER_SELECT} WHERE ${clauses.join(" AND ")} ORDER BY documents.created_at DESC`,
   );
-  const params = viewer.isPlatformAdmin ? [] : [viewer.id, viewer.id];
-  const { results } = await stmt.bind(...(folderId ? [folderId, ...params] : params)).all<DocumentWithUploader>();
+  const { results } = await stmt.bind(...params).all<DocumentWithUploader>();
   return results;
 }
 
