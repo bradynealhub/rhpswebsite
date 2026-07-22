@@ -15,6 +15,7 @@ import type {
   LeadWithDetails,
   OpportunityActivityType,
   OpportunityActivityWithAuthor,
+  OpportunityLinkWithAuthor,
   OpportunityStage,
   OpportunityWithOwner,
   PortalInvite,
@@ -696,6 +697,78 @@ export async function revokeDocumentShare(documentId: string, userId: string): P
     .prepare("DELETE FROM document_shares WHERE document_id = ? AND user_id = ?")
     .bind(documentId, userId)
     .run();
+}
+
+// --- Opportunity attachments (documents & links) ------------------------
+//
+// opportunity_documents (migration 0002) existed from the start but was
+// never wired to any UI until now -- attaching a document to an
+// opportunity just reuses the same documents/document_versions/R2 system
+// the Documents library already has (visibility, versions, comments), it
+// doesn't duplicate storage. opportunity_links is the URL equivalent, no
+// underlying document at all -- just a pointer out to a funder's site.
+
+export async function listOpportunityDocuments(opportunityId: string): Promise<DocumentWithUploader[]> {
+  const db = await getPortalDb();
+  const { results } = await db
+    .prepare(
+      `SELECT documents.*, portal_users.name AS uploader_name, document_versions.mime_type AS current_mime_type
+       FROM opportunity_documents
+       JOIN documents ON documents.id = opportunity_documents.document_id
+       JOIN portal_users ON portal_users.id = documents.uploader_user_id
+       LEFT JOIN document_versions
+         ON document_versions.document_id = documents.id AND document_versions.version = documents.current_version
+       WHERE opportunity_documents.opportunity_id = ?
+       ORDER BY opportunity_documents.created_at DESC`,
+    )
+    .bind(opportunityId)
+    .all<DocumentWithUploader>();
+  return results;
+}
+
+export async function attachDocumentToOpportunity(opportunityId: string, documentId: string): Promise<void> {
+  const db = await getPortalDb();
+  await db
+    .prepare("INSERT INTO opportunity_documents (opportunity_id, document_id) VALUES (?, ?)")
+    .bind(opportunityId, documentId)
+    .run();
+}
+
+export async function listOpportunityLinks(opportunityId: string): Promise<OpportunityLinkWithAuthor[]> {
+  const db = await getPortalDb();
+  const { results } = await db
+    .prepare(
+      `SELECT opportunity_links.*, portal_users.name AS created_by_name
+       FROM opportunity_links
+       JOIN portal_users ON portal_users.id = opportunity_links.created_by_user_id
+       WHERE opportunity_links.opportunity_id = ?
+       ORDER BY opportunity_links.created_at DESC`,
+    )
+    .bind(opportunityId)
+    .all<OpportunityLinkWithAuthor>();
+  return results;
+}
+
+export async function addOpportunityLink(input: {
+  id: string;
+  opportunityId: string;
+  url: string;
+  label: string | null;
+  createdByUserId: string;
+}): Promise<void> {
+  const db = await getPortalDb();
+  await db
+    .prepare(
+      `INSERT INTO opportunity_links (id, opportunity_id, url, label, created_by_user_id)
+       VALUES (?, ?, ?, ?, ?)`,
+    )
+    .bind(input.id, input.opportunityId, input.url, input.label, input.createdByUserId)
+    .run();
+}
+
+export async function removeOpportunityLink(id: string): Promise<void> {
+  const db = await getPortalDb();
+  await db.prepare("DELETE FROM opportunity_links WHERE id = ?").bind(id).run();
 }
 
 // --- Companies & contacts -----------------------------------------------

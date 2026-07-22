@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import {
   addFileDocumentVersion,
+  attachDocumentToOpportunity,
   createFileDocument,
   getDocumentById,
   getNextDocumentVersionNumber,
@@ -34,6 +35,7 @@ export async function POST(request: Request) {
   const visibilityRaw = String(formData.get("visibility") ?? "").trim();
   const visibility: DocumentVisibility = visibilityRaw === "Private" ? "Private" : "Shared";
   const existingDocumentId = String(formData.get("documentId") ?? "").trim() || null;
+  const opportunityId = String(formData.get("opportunityId") ?? "").trim() || null;
 
   if (!(file instanceof File)) return NextResponse.json({ error: "No file provided." }, { status: 400 });
   if (!existingDocumentId && !title) return NextResponse.json({ error: "Title is required." }, { status: 400 });
@@ -88,6 +90,7 @@ export async function POST(request: Request) {
       mimeType,
       sizeBytes: file.size,
     });
+    if (opportunityId) await attachDocumentToOpportunity(opportunityId, documentId);
   }
 
   return NextResponse.json({ ok: true, documentId });

@@ -56,7 +56,7 @@ export function NewRichTextDocumentForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md space-y-3 rounded-md border border-charcoal/10 p-4">
+    <form onSubmit={handleSubmit} className="w-80 space-y-3 rounded-lg border border-charcoal/10 bg-white p-4 shadow-lg">
       <input type="hidden" name="folderId" value={folderId ?? ""} />
       <div>
         <label htmlFor="rt-title" className="block font-body text-sm font-semibold text-charcoal">
@@ -83,7 +83,7 @@ export function NewRichTextDocumentForm({
       </div>
       <fieldset>
         <legend className="font-body text-sm font-semibold text-charcoal">Who can see this?</legend>
-        <div className="mt-1 flex gap-4">
+        <div className="mt-1 flex flex-col gap-1.5">
           <label className="flex items-center gap-1.5 font-body text-sm text-charcoal">
             <input type="radio" name="visibility" value="Shared" defaultChecked />
             Everyone in the portal

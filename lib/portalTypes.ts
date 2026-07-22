@@ -150,6 +150,17 @@ export type OpportunityActivity = {
 
 export type OpportunityActivityWithAuthor = OpportunityActivity & { author_name: string };
 
+export type OpportunityLink = {
+  id: string;
+  opportunity_id: string;
+  url: string;
+  label: string | null;
+  created_by_user_id: string;
+  created_at: string;
+};
+
+export type OpportunityLinkWithAuthor = OpportunityLink & { created_by_name: string };
+
 export type DocType = "richtext" | "file";
 export type DocumentStatus = "Draft" | "In Review" | "Approved" | "Rejected";
 

@@ -1,8 +1,10 @@
 import { notFound } from "next/navigation";
 import { GoNoGoDecision } from "@/components/portal/GoNoGoDecision";
 import { OpportunityActivityTimeline } from "@/components/portal/OpportunityActivityTimeline";
+import { OpportunityDocuments } from "@/components/portal/OpportunityDocuments";
 import { OpportunityForm } from "@/components/portal/OpportunityForm";
-import { getOpportunityById, listOpportunityActivities, listUsers } from "@/lib/portalDb";
+import { OpportunityLinks } from "@/components/portal/OpportunityLinks";
+import { getOpportunityById, listOpportunityActivities, listOpportunityLinks, listUsers } from "@/lib/portalDb";
 import { canEditOpportunity } from "@/lib/portalPermissions";
 import { getCurrentUser } from "@/lib/portalSession";
 import { updateOpportunityAction } from "../actions";
@@ -18,11 +20,12 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
   if (!user || !opportunity) notFound();
 
   const canEdit = canEditOpportunity(user, opportunity);
-  const [owners, activities] = await Promise.all([
+  const [owners, activities, links] = await Promise.all([
     user.tier === "Founding Operator"
       ? (await listUsers()).map(({ id: userId, name, email }) => ({ id: userId, name, email }))
       : Promise.resolve(undefined),
     listOpportunityActivities(id),
+    listOpportunityLinks(id),
   ]);
 
   return (
@@ -84,8 +87,10 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
           <OpportunityActivityTimeline opportunityId={opportunity.id} activities={activities} />
         </div>
 
-        <div>
+        <div className="space-y-8">
           <GoNoGoDecision opportunity={opportunity} />
+          <OpportunityDocuments opportunityId={opportunity.id} />
+          <OpportunityLinks opportunityId={opportunity.id} links={links} canRemove={canEdit} />
         </div>
       </div>
     </div>

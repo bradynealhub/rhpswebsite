@@ -60,7 +60,7 @@ export async function DocumentBrowser({
             <Link
               key={folder.id}
               href={`/portal/documents/folder/${folder.id}`}
-              className="group flex flex-col items-center gap-2 rounded-lg border border-transparent p-4 text-center hover:border-evergreen/30 hover:bg-warmStone/60 hover:shadow-sm"
+              className="group flex h-36 flex-col items-center justify-center gap-2 rounded-lg border border-charcoal/10 bg-white p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-evergreen/40 hover:shadow-md"
             >
               <FolderIcon />
               <span className="line-clamp-2 font-body text-sm text-charcoal group-hover:text-evergreen">
@@ -73,7 +73,7 @@ export async function DocumentBrowser({
             <Link
               key={doc.id}
               href={`/portal/documents/file/${doc.id}`}
-              className="group flex flex-col items-center gap-2 rounded-lg border border-transparent p-4 text-center hover:border-evergreen/30 hover:bg-warmStone/60 hover:shadow-sm"
+              className="group flex h-36 flex-col items-center justify-center gap-2 rounded-lg border border-charcoal/10 bg-white p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-evergreen/40 hover:shadow-md"
             >
               <div className="relative">
                 {doc.doc_type === "richtext" ? (

@@ -4,11 +4,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import {
   addOpportunityActivity,
+  addOpportunityLink,
   createOpportunity,
   findOrCreateCompany,
   findOrCreateContact,
   getOpportunityById,
   recordGoNoGoDecision,
+  removeOpportunityLink,
   setOpportunityActivityCompleted,
   updateOpportunity,
   type OpportunityInput,
@@ -182,5 +184,42 @@ export async function toggleOpportunityActivityAction(formData: FormData): Promi
   const completed = String(formData.get("completed") ?? "") === "true";
 
   await setOpportunityActivityCompleted(activityId, completed);
+  revalidatePath(`/portal/opportunities/${opportunityId}`);
+}
+
+// Same permission shape as addOpportunityActivityAction -- attaching a
+// reference link is a lightweight, all-tiers "engage with this
+// opportunity" action, not an edit of the core record.
+export async function addOpportunityLinkAction(formData: FormData): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/portal/login");
+
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const urlRaw = String(formData.get("url") ?? "").trim();
+  const label = stringOrNull(formData.get("label"));
+  if (!/^https?:\/\/.+/i.test(urlRaw)) throw new Error("Enter a full URL starting with http:// or https://.");
+
+  await addOpportunityLink({
+    id: crypto.randomUUID(),
+    opportunityId,
+    url: urlRaw,
+    label,
+    createdByUserId: user.id,
+  });
+
+  revalidatePath(`/portal/opportunities/${opportunityId}`);
+}
+
+export async function removeOpportunityLinkAction(formData: FormData): Promise<void> {
+  const user = await getCurrentUser();
+  if (!user) redirect("/portal/login");
+
+  const linkId = String(formData.get("linkId") ?? "");
+  const opportunityId = String(formData.get("opportunityId") ?? "");
+  const opportunity = await getOpportunityById(opportunityId);
+  if (!opportunity) throw new Error("Opportunity not found.");
+  if (!canEditOpportunity(user, opportunity)) throw new PortalForbiddenError();
+
+  await removeOpportunityLink(linkId);
   revalidatePath(`/portal/opportunities/${opportunityId}`);
 }
