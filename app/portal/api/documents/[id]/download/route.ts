@@ -33,12 +33,21 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const object = await env.PORTAL_FILES.get(version.r2_key);
   if (!object) return NextResponse.json({ error: "File not found in storage." }, { status: 404 });
 
+  // Inline preview is opt-in via ?inline=1, and even then only honored for
+  // PDFs -- gated on the mime_type stored in D1 at upload time, not the
+  // client-suppliable query param alone, so this can't be used to get an
+  // arbitrary file type (e.g. an uploaded HTML file) rendered inline in the
+  // browser's origin.
+  const wantsInline = url.searchParams.get("inline") === "1";
+  const disposition = wantsInline && version.mime_type === "application/pdf" ? "inline" : "attachment";
+
   return new NextResponse(object.body, {
     headers: {
       "Content-Type": version.mime_type ?? "application/octet-stream",
-      "Content-Disposition": `attachment; filename="${version.original_filename ?? "download"}"`,
+      "Content-Disposition": `${disposition}; filename="${version.original_filename ?? "download"}"`,
       "Content-Length": String(version.size_bytes ?? object.size),
       "Cache-Control": "private, no-store",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

@@ -76,7 +76,18 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
             </div>
           ) : (
             <div>
-              <div className="flex items-center justify-between">
+              {versions[0]?.mime_type === "application/pdf" ? (
+                <div>
+                  <h2 className="font-headline text-lg font-bold text-charcoal">Preview</h2>
+                  <iframe
+                    src={`/portal/api/documents/${document.id}/download?inline=1`}
+                    title={`${document.title} preview`}
+                    className="mt-3 h-[80vh] w-full rounded-md border border-charcoal/20"
+                  />
+                </div>
+              ) : null}
+
+              <div className="mt-6 flex items-center justify-between">
                 <h2 className="font-headline text-lg font-bold text-charcoal">Versions</h2>
                 {access === "edit" ? <DocumentUploadForm documentId={document.id} /> : null}
               </div>
@@ -91,12 +102,24 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                         {version.size_bytes ? formatBytes(version.size_bytes) : ""} &middot; {version.created_at}
                       </p>
                     </div>
-                    <a
-                      href={`/portal/api/documents/${document.id}/download?version=${version.version}`}
-                      className="font-body text-sm text-evergreen hover:underline"
-                    >
-                      Download
-                    </a>
+                    <div className="flex items-center gap-3">
+                      {version.mime_type === "application/pdf" ? (
+                        <a
+                          href={`/portal/api/documents/${document.id}/download?version=${version.version}&inline=1`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-body text-sm text-evergreen hover:underline"
+                        >
+                          Preview
+                        </a>
+                      ) : null}
+                      <a
+                        href={`/portal/api/documents/${document.id}/download?version=${version.version}`}
+                        className="font-body text-sm text-evergreen hover:underline"
+                      >
+                        Download
+                      </a>
+                    </div>
                   </li>
                 ))}
               </ul>
