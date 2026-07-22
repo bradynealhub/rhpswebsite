@@ -30,8 +30,8 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
 
   return (
     <div>
-      <h1 className="font-headline text-2xl font-bold text-charcoal">{opportunity.title}</h1>
-      <p className="mt-1 font-body text-sm text-charcoal/60">
+      <h1>{opportunity.title}</h1>
+      <p className="text-muted mt-1" style={{ fontSize: "13px" }}>
         {opportunity.funder}
         {opportunity.program_name ? ` · ${opportunity.program_name}` : ""}
       </p>
@@ -41,7 +41,7 @@ export default async function OpportunityDetailPage({ params }: { params: Promis
           {canEdit ? (
             <OpportunityForm action={updateOpportunityAction} opportunity={opportunity} owners={owners} />
           ) : (
-            <div className="max-w-xl space-y-2 font-body text-charcoal/80">
+            <div className="max-w-xl space-y-2" style={{ fontSize: "14px" }}>
               <p>
                 <strong>Stage:</strong> {opportunity.stage}
               </p>

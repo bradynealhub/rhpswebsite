@@ -15,23 +15,25 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div>
-      <h1 className="font-headline text-2xl font-bold text-charcoal">{lead.contact_name}</h1>
-      <p className="mt-1 font-body text-sm text-charcoal/60">
+      <h1>{lead.contact_name}</h1>
+      <p className="text-muted mt-1" style={{ fontSize: "13px" }}>
         {lead.company_name ?? "No organization given"}
         {lead.inquiry_role ? ` · ${lead.inquiry_role}` : ""} · via {lead.source}
       </p>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-6">
-          <div className="rounded-md border border-charcoal/10 p-4">
-            <h2 className="font-headline text-lg font-bold text-charcoal">Inquiry</h2>
-            <p className="mt-2 whitespace-pre-wrap font-body text-sm text-charcoal/80">&ldquo;{lead.message}&rdquo;</p>
-            <p className="mt-3 font-body text-xs text-charcoal/40">Submitted {lead.created_at}</p>
+          <div className="card blueprint">
+            <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+            <h2 style={{ fontSize: "17px" }}>Inquiry</h2>
+            <p className="mt-2 whitespace-pre-wrap" style={{ fontSize: "13px" }}>&ldquo;{lead.message}&rdquo;</p>
+            <p className="text-muted mt-3" style={{ fontSize: "11px" }}>Submitted {lead.created_at}</p>
           </div>
 
-          <div className="rounded-md border border-charcoal/10 p-4">
-            <h2 className="font-headline text-lg font-bold text-charcoal">Contact</h2>
-            <dl className="mt-2 space-y-1 font-body text-sm text-charcoal/80">
+          <div className="card blueprint">
+            <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+            <h2 style={{ fontSize: "17px" }}>Contact</h2>
+            <dl className="mt-2 space-y-1" style={{ fontSize: "13px" }}>
               <div>
                 <dt className="inline font-semibold">Name:</dt> <dd className="inline">{lead.contact_name}</dd>
               </div>
@@ -44,9 +46,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                 <div>
                   <dt className="inline font-semibold">Email:</dt>{" "}
                   <dd className="inline">
-                    <a href={`mailto:${lead.contact_email}`} className="text-evergreen hover:underline">
-                      {lead.contact_email}
-                    </a>
+                    <a href={`mailto:${lead.contact_email}`}>{lead.contact_email}</a>
                   </dd>
                 </div>
               ) : null}
@@ -54,9 +54,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
                 <div>
                   <dt className="inline font-semibold">Phone:</dt>{" "}
                   <dd className="inline">
-                    <a href={`tel:${lead.contact_phone}`} className="text-evergreen hover:underline">
-                      {lead.contact_phone}
-                    </a>
+                    <a href={`tel:${lead.contact_phone}`}>{lead.contact_phone}</a>
                   </dd>
                 </div>
               ) : null}
@@ -69,10 +67,7 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           </div>
 
           {lead.status === "Converted" && lead.converted_opportunity_id ? (
-            <Link
-              href={`/portal/opportunities/${lead.converted_opportunity_id}`}
-              className="inline-block font-body text-sm font-semibold text-evergreen hover:underline"
-            >
+            <Link href={`/portal/opportunities/${lead.converted_opportunity_id}`} className="btn btn-secondary">
               View the resulting opportunity &rarr;
             </Link>
           ) : canEdit ? (
@@ -84,15 +79,16 @@ export default async function LeadDetailPage({ params }: { params: Promise<{ id:
           {canEdit ? (
             <LeadStatusPanel lead={lead} />
           ) : (
-            <div className="rounded-md border border-charcoal/10 p-4">
-              <h2 className="font-headline text-lg font-bold text-charcoal">Status</h2>
-              <p className="mt-2 font-body text-sm text-charcoal/80">
+            <div className="card blueprint">
+              <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+              <h2 style={{ fontSize: "17px" }}>Status</h2>
+              <p className="mt-2" style={{ fontSize: "13px" }}>
                 <strong>{lead.status}</strong>
               </p>
-              <p className="mt-1 font-body text-sm text-charcoal/60">
+              <p className="text-muted mt-1" style={{ fontSize: "13px" }}>
                 {lead.owner_name ? `Claimed by ${lead.owner_name}` : "Unclaimed"}
               </p>
-              {lead.notes ? <p className="mt-2 font-body text-sm text-charcoal/70">{lead.notes}</p> : null}
+              {lead.notes ? <p className="mt-2" style={{ fontSize: "13px" }}>{lead.notes}</p> : null}
             </div>
           )}
         </div>

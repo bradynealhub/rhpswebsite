@@ -30,9 +30,12 @@ function ToolbarButton({
       aria-label={label}
       aria-pressed={active}
       title={label}
-      className={`rounded px-2 py-1 font-body text-sm hover:bg-warmStone disabled:cursor-not-allowed disabled:opacity-40 ${
-        active ? "bg-warmStone text-evergreen" : "text-charcoal"
-      }`}
+      className="btn btn-ghost"
+      style={{
+        padding: "4px 8px",
+        fontSize: "13px",
+        ...(active ? { background: "var(--color-accent-100)", color: "var(--color-accent-800)" } : {}),
+      }}
     >
       {children}
     </button>
@@ -52,7 +55,10 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-1 rounded-t-md border border-b-0 border-charcoal/20 bg-white px-2 py-1.5">
+    <div
+      className="flex flex-wrap items-center gap-1"
+      style={{ border: "1px solid var(--color-divider)", borderBottom: 0, padding: "6px 8px", background: "var(--color-surface)" }}
+    >
       <select
         aria-label="Text style"
         value={
@@ -69,7 +75,8 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
           if (value === "p") editor.chain().focus().setParagraph().run();
           else editor.chain().focus().toggleHeading({ level: Number(value.slice(1)) as 1 | 2 | 3 }).run();
         }}
-        className="rounded border border-charcoal/20 px-2 py-1 font-body text-sm text-charcoal"
+        className="input"
+        style={{ width: "auto", minHeight: "auto", padding: "4px 6px", fontSize: "13px" }}
       >
         <option value="p">Normal text</option>
         <option value="h1">Heading 1</option>
@@ -85,7 +92,8 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
           if (value === "16px") editor.chain().focus().setMark("textStyle", { fontSize: null }).run();
           else editor.chain().focus().setMark("textStyle", { fontSize: value }).run();
         }}
-        className="rounded border border-charcoal/20 px-2 py-1 font-body text-sm text-charcoal"
+        className="input"
+        style={{ width: "auto", minHeight: "auto", padding: "4px 6px", fontSize: "13px" }}
       >
         {FONT_SIZES.map((size) => (
           <option key={size.value} value={size.value}>
@@ -94,7 +102,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         ))}
       </select>
 
-      <div className="mx-1 h-5 w-px bg-charcoal/15" />
+      <div className="mx-1 h-5 w-px" style={{ background: "var(--color-divider)" }} />
 
       <ToolbarButton
         label="Bold"
@@ -125,7 +133,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         <span className="line-through">S</span>
       </ToolbarButton>
 
-      <div className="mx-1 h-5 w-px bg-charcoal/15" />
+      <div className="mx-1 h-5 w-px" style={{ background: "var(--color-divider)" }} />
 
       <ToolbarButton
         label="Bulleted list"
@@ -149,7 +157,7 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         &ldquo;
       </ToolbarButton>
 
-      <div className="mx-1 h-5 w-px bg-charcoal/15" />
+      <div className="mx-1 h-5 w-px" style={{ background: "var(--color-divider)" }} />
 
       <ToolbarButton
         label="Text align left"
@@ -173,13 +181,13 @@ export function EditorToolbar({ editor }: { editor: Editor }) {
         &#8677;
       </ToolbarButton>
 
-      <div className="mx-1 h-5 w-px bg-charcoal/15" />
+      <div className="mx-1 h-5 w-px" style={{ background: "var(--color-divider)" }} />
 
       <ToolbarButton label="Link" active={editor.isActive("link")} onClick={setLink}>
         &#128279;
       </ToolbarButton>
 
-      <div className="mx-1 h-5 w-px bg-charcoal/15" />
+      <div className="mx-1 h-5 w-px" style={{ background: "var(--color-divider)" }} />
 
       <ToolbarButton label="Undo" onClick={() => editor.chain().focus().undo().run()}>
         &#8630;

@@ -39,25 +39,21 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
     <div>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-headline text-2xl font-bold text-charcoal">{document.title}</h1>
-          {document.description ? <p className="mt-2 font-body text-charcoal/70">{document.description}</p> : null}
-          <p className="mt-1 font-body text-sm text-charcoal/50">
+          <h1>{document.title}</h1>
+          {document.description ? <p className="text-muted mt-2">{document.description}</p> : null}
+          <p className="text-muted mt-1" style={{ fontSize: "13px" }}>
             {document.doc_type === "richtext" ? "Started" : "Uploaded"} by {document.uploader_name} &middot;{" "}
             {document.created_at}
           </p>
         </div>
-        {document.visibility === "Private" ? (
-          <span className="shrink-0 rounded-full bg-charcoal/10 px-3 py-1 font-body text-xs font-semibold text-charcoal/70">
-            🔒 Private
-          </span>
-        ) : null}
+        {document.visibility === "Private" ? <span className="tag tag-neutral shrink-0">🔒 Private</span> : null}
       </div>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[2fr_1fr]">
         <div className="space-y-8">
           {document.doc_type === "richtext" ? (
             <div>
-              <h2 className="font-headline text-lg font-bold text-charcoal">Document</h2>
+              <h2 style={{ fontSize: "17px" }}>Document</h2>
               <div className="mt-3">
                 <CollaborativeEditor
                   documentId={document.id}
@@ -68,7 +64,7 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                 />
               </div>
               {versions.length > 0 ? (
-                <p className="mt-2 font-body text-xs text-charcoal/50">
+                <p className="text-muted mt-2" style={{ fontSize: "11px" }}>
                   {versions.length} review snapshot{versions.length === 1 ? "" : "s"} &middot; latest v
                   {versions[0].version} &middot; {versions[0].created_at}
                 </p>
@@ -78,27 +74,32 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
             <div>
               {versions[0]?.mime_type === "application/pdf" ? (
                 <div>
-                  <h2 className="font-headline text-lg font-bold text-charcoal">Preview</h2>
+                  <h2 style={{ fontSize: "17px" }}>Preview</h2>
                   <iframe
                     src={`/portal/api/documents/${document.id}/download?inline=1`}
                     title={`${document.title} preview`}
-                    className="mt-3 h-[80vh] w-full rounded-md border border-charcoal/20"
+                    className="mt-3 h-[80vh] w-full"
+                    style={{ border: "1px solid var(--color-divider)" }}
                   />
                 </div>
               ) : null}
 
               <div className="mt-6 flex items-center justify-between">
-                <h2 className="font-headline text-lg font-bold text-charcoal">Versions</h2>
+                <h2 style={{ fontSize: "17px" }}>Versions</h2>
                 {access === "edit" ? <DocumentUploadForm documentId={document.id} /> : null}
               </div>
-              <ul className="mt-3 divide-y divide-charcoal/5">
+              <ul className="mt-3" style={{ borderTop: "1px solid var(--color-divider)" }}>
                 {versions.map((version) => (
-                  <li key={version.id} className="flex items-center justify-between py-2">
+                  <li
+                    key={version.id}
+                    className="flex items-center justify-between py-2"
+                    style={{ borderBottom: "1px solid var(--color-divider)" }}
+                  >
                     <div>
-                      <p className="font-body text-sm text-charcoal">
+                      <p style={{ fontSize: "13px" }}>
                         v{version.version} &middot; {version.original_filename}
                       </p>
-                      <p className="font-body text-xs text-charcoal/50">
+                      <p className="text-muted" style={{ fontSize: "11px" }}>
                         {version.size_bytes ? formatBytes(version.size_bytes) : ""} &middot; {version.created_at}
                       </p>
                     </div>
@@ -108,14 +109,14 @@ export default async function DocumentDetailPage({ params }: { params: Promise<{
                           href={`/portal/api/documents/${document.id}/download?version=${version.version}&inline=1`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="font-body text-sm text-evergreen hover:underline"
+                          style={{ fontSize: "13px" }}
                         >
                           Preview
                         </a>
                       ) : null}
                       <a
                         href={`/portal/api/documents/${document.id}/download?version=${version.version}`}
-                        className="font-body text-sm text-evergreen hover:underline"
+                        style={{ fontSize: "13px" }}
                       >
                         Download
                       </a>

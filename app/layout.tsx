@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Merriweather, Source_Sans_3, Source_Serif_4 } from "next/font/google";
+import { Barlow, Barlow_Condensed, Merriweather, Source_Sans_3, Source_Serif_4 } from "next/font/google";
 import "./globals.css";
 
 const merriweather = Merriweather({
@@ -21,6 +21,23 @@ const sourceSerif = Source_Serif_4({
   weight: ["400", "600"],
   style: ["italic"],
   variable: "--font-source-serif",
+  display: "swap",
+});
+
+// Portal-only fonts (see app/portal/portal-design-system.css) -- loaded
+// here rather than lazily inside the portal layouts so next/font can
+// self-host and dedupe them the same way as the marketing site's fonts.
+const barlow = Barlow({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-barlow",
+  display: "swap",
+});
+
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["400", "600"],
+  variable: "--font-barlow-condensed",
   display: "swap",
 });
 
@@ -53,7 +70,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${merriweather.variable} ${sourceSans.variable} ${sourceSerif.variable}`}
+      className={`${merriweather.variable} ${sourceSans.variable} ${sourceSerif.variable} ${barlow.variable} ${barlowCondensed.variable}`}
     >
       <body>{children}</body>
     </html>

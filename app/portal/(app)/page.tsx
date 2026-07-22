@@ -16,29 +16,33 @@ export default async function PortalDashboardPage() {
 
   return (
     <div>
-      <h1 className="font-headline text-2xl font-bold text-charcoal">Welcome, {user?.name}</h1>
-      <p className="mt-2 font-body text-charcoal/70">
+      <h1>Welcome, {user?.name}</h1>
+      <p className="text-muted mt-2" style={{ fontSize: "15px" }}>
         Signed in as {user?.email} &middot; {user?.tier}
         {user?.is_platform_admin ? " · Platform Admin" : ""}
       </p>
 
       <Link
         href="/portal/leads"
-        className="mt-8 flex max-w-sm items-center justify-between rounded-md border border-copperAccent/40 bg-copperAccent/5 p-4 hover:border-copperAccent"
+        className="card blueprint elev-sm tile-hover mt-8 flex max-w-sm items-center justify-between"
+        style={{ borderColor: "var(--color-accent-2)", background: "var(--color-accent-2-100)" }}
       >
         <div>
-          <p className="font-headline text-lg font-bold text-charcoal">Leads awaiting triage</p>
-          <p className="font-body text-sm text-charcoal/60">Inbound inquiries, mostly from the contact form</p>
+          <p className="card-title">Leads awaiting triage</p>
+          <p className="text-muted" style={{ fontSize: "13px" }}>Inbound inquiries, mostly from the contact form</p>
         </div>
-        <p className="font-body text-3xl font-bold text-copperAccent">{newLeadsCount}</p>
+        <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "30px", color: "var(--color-accent-2-800)" }}>
+          {newLeadsCount}
+        </p>
       </Link>
 
-      <h2 className="mt-10 font-headline text-lg font-bold text-charcoal">Opportunities by stage</h2>
+      <h2 className="mt-10" style={{ fontSize: "20px" }}>Opportunities by stage</h2>
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-7">
         {(Object.entries(stageCounts) as [string, number][]).map(([stage, count]) => (
-          <div key={stage} className="rounded-md border border-charcoal/10 p-4">
-            <p className="font-body text-2xl font-bold text-charcoal">{count}</p>
-            <p className="font-body text-sm text-charcoal/60">{stage}</p>
+          <div key={stage} className="card blueprint">
+            <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+            <p style={{ fontFamily: "var(--font-heading)", fontWeight: 700, fontSize: "24px" }}>{count}</p>
+            <p className="text-muted" style={{ fontSize: "13px" }}>{stage}</p>
           </div>
         ))}
       </div>
@@ -50,7 +54,7 @@ export default async function PortalDashboardPage() {
         </div>
       ) : null}
 
-      <Link href="/portal/opportunities" className="mt-4 inline-block font-body text-sm text-evergreen hover:underline">
+      <Link href="/portal/opportunities" className="mt-4 inline-block" style={{ fontSize: "13px" }}>
         View all opportunities &rarr;
       </Link>
     </div>

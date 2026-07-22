@@ -8,9 +8,10 @@ import type { Opportunity } from "@/lib/portalTypes";
 export function GoNoGoDecision({ opportunity }: { opportunity: Opportunity }) {
   if (opportunity.stage === "Qualifying") {
     return (
-      <div className="rounded-md border border-copperAccent/40 bg-copperAccent/5 p-4">
-        <h2 className="font-headline text-lg font-bold text-charcoal">Go / No-Go decision</h2>
-        <p className="mt-1 font-body text-sm text-charcoal/70">
+      <div className="card blueprint" style={{ borderColor: "var(--color-accent-2)", background: "var(--color-accent-2-100)" }}>
+        <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+        <h2 style={{ fontSize: "17px" }}>Go / No-Go decision</h2>
+        <p className="mt-1" style={{ fontSize: "13px" }}>
           Decide whether this opportunity is worth pursuing before more effort goes into it.
         </p>
         <form action={recordGoNoGoDecisionAction} className="mt-3 space-y-3">
@@ -19,22 +20,18 @@ export function GoNoGoDecision({ opportunity }: { opportunity: Opportunity }) {
             name="notes"
             rows={3}
             placeholder="Why? (capacity, fit, competitiveness, funding amount...)"
-            className="w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
+            className="input"
           />
           <div className="flex gap-2">
-            <button
-              type="submit"
-              name="decision"
-              value="Pursuing"
-              className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90"
-            >
+            <button type="submit" name="decision" value="Pursuing" className="btn btn-primary">
               Go &mdash; pursue it
             </button>
             <button
               type="submit"
               name="decision"
               value="No-Go"
-              className="rounded-md border border-red-700 px-4 py-2 font-body text-sm font-semibold text-red-700 hover:bg-red-700 hover:text-white"
+              className="btn btn-secondary"
+              style={{ color: "#a13328", borderColor: "#a13328" }}
             >
               No-Go &mdash; pass
             </button>
@@ -46,16 +43,17 @@ export function GoNoGoDecision({ opportunity }: { opportunity: Opportunity }) {
 
   if (opportunity.go_no_go_decided_at) {
     return (
-      <div className="rounded-md border border-charcoal/10 p-4">
-        <h2 className="font-headline text-lg font-bold text-charcoal">Go / No-Go decision</h2>
-        <p className="mt-2 font-body text-sm text-charcoal/80">
-          <span className={opportunity.stage === "No-Go" ? "font-semibold text-red-700" : "font-semibold text-evergreen"}>
+      <div className="card blueprint">
+        <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
+        <h2 style={{ fontSize: "17px" }}>Go / No-Go decision</h2>
+        <p className="mt-2" style={{ fontSize: "13px" }}>
+          <span className={opportunity.stage === "No-Go" ? "tag tag-danger" : "tag tag-accent"}>
             {opportunity.stage === "No-Go" ? "No-Go" : "Go"}
           </span>{" "}
           &middot; {opportunity.go_no_go_decided_at}
         </p>
         {opportunity.go_no_go_notes ? (
-          <p className="mt-1 font-body text-sm text-charcoal/70">&ldquo;{opportunity.go_no_go_notes}&rdquo;</p>
+          <p className="text-muted mt-1" style={{ fontSize: "13px" }}>&ldquo;{opportunity.go_no_go_notes}&rdquo;</p>
         ) : null}
       </div>
     );

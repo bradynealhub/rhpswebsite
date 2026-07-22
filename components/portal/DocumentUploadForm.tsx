@@ -80,79 +80,56 @@ export function DocumentUploadForm({
   if (!open) {
     if (isControlled) return null;
     return (
-      <button
-        type="button"
-        onClick={() => setUncontrolledOpen(true)}
-        className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90"
-      >
+      <button type="button" onClick={() => setUncontrolledOpen(true)} className="btn btn-primary">
         {documentId ? "Upload new version" : "Upload document"}
       </button>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-80 space-y-3 rounded-lg border border-charcoal/10 bg-white p-4 shadow-lg">
+    <form onSubmit={handleSubmit} className="dialog blueprint elev-md" style={{ width: "320px" }}>
+      <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
       {!documentId ? (
-        <div>
-          <label htmlFor="title" className="block font-body text-sm font-semibold text-charcoal">
-            Title
-          </label>
-          <input
-            id="title"
-            name="title"
-            required
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
-          />
+        <div className="field">
+          <label htmlFor="title">Title</label>
+          <input id="title" name="title" required className="input" />
         </div>
       ) : null}
       {!documentId ? (
-        <div>
-          <label htmlFor="description" className="block font-body text-sm font-semibold text-charcoal">
-            Description (optional)
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows={2}
-            className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body text-sm"
-          />
+        <div className="field">
+          <label htmlFor="description">Description (optional)</label>
+          <textarea id="description" name="description" rows={2} className="input" />
         </div>
       ) : null}
-      <div>
-        <label htmlFor="file" className="block font-body text-sm font-semibold text-charcoal">
-          File
-        </label>
-        <input id="file" name="file" type="file" required className="mt-1 w-full font-body text-sm" />
+      <div className="field">
+        <label htmlFor="file">File</label>
+        <input id="file" name="file" type="file" required style={{ fontSize: "13px" }} />
       </div>
       {!documentId ? (
-        <fieldset>
-          <legend className="font-body text-sm font-semibold text-charcoal">Who can see this?</legend>
-          <div className="mt-1 flex flex-col gap-1.5">
-            <label className="flex items-center gap-1.5 font-body text-sm text-charcoal">
+        <fieldset className="field">
+          <label>Who can see this?</label>
+          <div className="flex flex-col gap-1.5">
+            <label className="flex items-center gap-1.5" style={{ fontSize: "14px" }}>
               <input type="radio" name="visibility" value="Shared" defaultChecked />
               Everyone in the portal
             </label>
-            <label className="flex items-center gap-1.5 font-body text-sm text-charcoal">
+            <label className="flex items-center gap-1.5" style={{ fontSize: "14px" }}>
               <input type="radio" name="visibility" value="Private" />
               Only me (share it later)
             </label>
           </div>
         </fieldset>
       ) : null}
-      <div className="flex items-center gap-3">
-        <button
-          type="submit"
-          disabled={status === "submitting"}
-          className="rounded-md bg-evergreen px-4 py-2 font-body text-sm font-semibold text-warmStone hover:opacity-90 disabled:opacity-60"
-        >
-          {status === "submitting" ? "Uploading..." : "Upload"}
-        </button>
-        <button type="button" onClick={close} className="font-body text-sm text-charcoal/60 hover:text-charcoal">
+      <div className="dialog-actions">
+        <button type="button" onClick={close} className="btn btn-secondary">
           Cancel
+        </button>
+        <button type="submit" disabled={status === "submitting"} className="btn btn-primary">
+          {status === "submitting" ? "Uploading..." : "Upload"}
         </button>
       </div>
       {status === "error" ? (
-        <p className="font-body text-sm text-red-700" role="alert">
+        <p style={{ fontSize: "13px", color: "#a13328" }} role="alert">
           {errorMessage}
         </p>
       ) : null}

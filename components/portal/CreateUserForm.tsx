@@ -47,19 +47,19 @@ export function CreateUserForm() {
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 max-w-md space-y-4">
-      <div>
-        <label htmlFor="name" className="block font-body text-sm font-semibold text-charcoal">
+      <div className="field">
+        <label htmlFor="name" >
           Name
         </label>
         <input
           id="name"
           name="name"
           required
-          className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+          className="input"
         />
       </div>
-      <div>
-        <label htmlFor="email" className="block font-body text-sm font-semibold text-charcoal">
+      <div className="field">
+        <label htmlFor="email" >
           Email
         </label>
         <input
@@ -67,11 +67,11 @@ export function CreateUserForm() {
           name="email"
           type="email"
           required
-          className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+          className="input"
         />
       </div>
-      <div>
-        <label htmlFor="tier" className="block font-body text-sm font-semibold text-charcoal">
+      <div className="field">
+        <label htmlFor="tier" >
           Tier
         </label>
         <select
@@ -79,7 +79,7 @@ export function CreateUserForm() {
           name="tier"
           required
           defaultValue=""
-          className="mt-1 w-full rounded-md border border-charcoal/20 px-3 py-2 font-body"
+          className="input"
         >
           <option value="" disabled>
             Select a tier
@@ -91,24 +91,24 @@ export function CreateUserForm() {
       </div>
       <div className="flex items-center gap-2">
         <input id="isPlatformAdmin" name="isPlatformAdmin" type="checkbox" value="true" className="h-4 w-4" />
-        <label htmlFor="isPlatformAdmin" className="font-body text-sm text-charcoal">
+        <label htmlFor="isPlatformAdmin" style={{ fontSize: "14px" }}>
           Platform admin
         </label>
       </div>
       <button
         type="submit"
         disabled={status === "submitting"}
-        className="rounded-md bg-evergreen px-6 py-3 font-body font-semibold text-warmStone transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="btn btn-primary"
       >
         {status === "submitting" ? "Creating..." : "Create user"}
       </button>
       {status === "error" ? (
-        <p className="font-body text-red-700" role="alert">
+        <p style={{ fontSize: "14px", color: "#a13328" }} role="alert">
           {errorMessage}
         </p>
       ) : null}
       {setupPath ? (
-        <p className="font-body text-evergreen" role="status">
+        <p style={{ fontSize: "14px", color: "var(--color-accent-700)" }} role="status">
           Account created. Send this setup link: <code className="font-mono">{setupPath}</code>
         </p>
       ) : null}

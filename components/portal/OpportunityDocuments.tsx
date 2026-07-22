@@ -5,11 +5,11 @@ import { listDocumentShares, listOpportunityDocuments } from "@/lib/portalDb";
 import { canViewDocument } from "@/lib/portalPermissions";
 import { getCurrentUser } from "@/lib/portalSession";
 
-const STATUS_PILL_CLASSES: Record<string, string> = {
-  Draft: "bg-charcoal/10 text-charcoal/70",
-  "In Review": "bg-copperAccent/10 text-copperAccent",
-  Approved: "bg-evergreen/10 text-evergreen",
-  Rejected: "bg-red-50 text-red-700",
+const STATUS_TAG_CLASSES: Record<string, string> = {
+  Draft: "tag tag-neutral",
+  "In Review": "tag tag-accent-2",
+  Approved: "tag tag-accent",
+  Rejected: "tag tag-danger",
 };
 
 // Unlimited documents per opportunity, reusing the same documents/R2 system
@@ -34,18 +34,16 @@ export async function OpportunityDocuments({ opportunityId }: { opportunityId: s
 
   return (
     <div>
-      <h2 className="font-headline text-lg font-bold text-charcoal">Documents</h2>
+      <h2 style={{ fontSize: "17px" }}>Documents</h2>
 
       {visible.length === 0 ? (
-        <p className="mt-2 font-body text-sm text-charcoal/50">No documents attached yet.</p>
+        <p className="text-muted mt-2" style={{ fontSize: "13px" }}>No documents attached yet.</p>
       ) : (
         <ul className="mt-2 space-y-1.5">
           {visible.map((doc) => (
             <li key={doc.id}>
-              <Link
-                href={`/portal/documents/file/${doc.id}`}
-                className="flex items-center gap-3 rounded-md border border-charcoal/10 px-3 py-2 hover:border-evergreen/40"
-              >
+              <Link href={`/portal/documents/file/${doc.id}`} className="card blueprint flex items-center gap-3">
+                <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
                 <div className="relative shrink-0">
                   {doc.doc_type === "richtext" ? (
                     <RichTextDocIcon className="h-6 w-6" />
@@ -54,12 +52,8 @@ export async function OpportunityDocuments({ opportunityId }: { opportunityId: s
                   )}
                   {doc.visibility === "Private" ? <PrivateLockBadge /> : null}
                 </div>
-                <span className="min-w-0 flex-1 truncate font-body text-sm text-charcoal">{doc.title}</span>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-0.5 font-body text-[11px] font-semibold ${STATUS_PILL_CLASSES[doc.status] ?? ""}`}
-                >
-                  {doc.status}
-                </span>
+                <span className="min-w-0 flex-1 truncate" style={{ fontSize: "13px" }}>{doc.title}</span>
+                <span className={`shrink-0 ${STATUS_TAG_CLASSES[doc.status] ?? "tag tag-neutral"}`}>{doc.status}</span>
               </Link>
             </li>
           ))}

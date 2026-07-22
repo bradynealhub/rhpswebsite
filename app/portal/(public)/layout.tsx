@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
+import "../portal-design-system.css";
 
 // Login/invite-setup pages -- unauthenticated, so no PortalNav, but still
-// white like the rest of the portal rather than the marketing site's
-// warmStone body background.
+// part of the portal's design system rather than the marketing site's
+// evergreen/warmStone look.
 export default function PortalPublicLayout({ children }: { children: ReactNode }) {
-  return <div className="min-h-screen bg-white">{children}</div>;
+  return <div className="portal-ds min-h-screen">{children}</div>;
 }
